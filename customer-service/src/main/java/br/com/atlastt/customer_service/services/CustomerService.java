@@ -1,6 +1,8 @@
 package br.com.atlastt.customer_service.services;
 
 
+import br.com.atlastt.customer_service.exceptions.CustomerAlreadyExistsException;
+import br.com.atlastt.customer_service.exceptions.CustomerNotFoundException;
 import br.com.atlastt.customer_service.models.Customer;
 import br.com.atlastt.customer_service.repositories.CustomerRepository;
 import org.springframework.stereotype.Service;
@@ -18,10 +20,10 @@ public class CustomerService {
 
     public Customer createCustomer(String name, String email, String document) {
         if (findCustomerByDocument(document) != null) {
-            throw new RuntimeException("Customer already exists with document: " + document);
+            throw new CustomerAlreadyExistsException("Customer already exists with document: " + document);
         }
         if (findCustomerByEmail(email) != null) {
-            throw new RuntimeException("Customer already exists with email: " + email);
+            throw new CustomerAlreadyExistsException("Customer already exists with email: " + email);
         }
         var customer = new Customer(name, email, document);
         customerRepository.save(customer);
@@ -32,12 +34,12 @@ public class CustomerService {
         try{
         customerRepository.deleteById(id);
         } catch (Exception e) {
-            throw new RuntimeException("Error while deleting customer with id: " + id, e);
+            throw new CustomerNotFoundException("Error while deleting customer with id: " + id);
         }
     }
 
     public Customer updateCustomer(Long id, String name, String email, String document) {
-        var customer = customerRepository.findById(id).orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));
+        var customer = customerRepository.findById(id).orElseThrow(() -> new CustomerNotFoundException("Customer not found with id: " + id));
         customer.setName(name);
         customer.setEmail(email);
         customer.setDocument(document);
