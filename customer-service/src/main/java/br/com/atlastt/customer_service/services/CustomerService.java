@@ -16,7 +16,7 @@ public class CustomerService {
         this.customerRepository = customerRepository;
     }
 
-    public void createCustomer(String name, String email, String document) {
+    public Customer createCustomer(String name, String email, String document) {
         if (findCustomerByDocument(document) != null) {
             throw new RuntimeException("Customer already exists with document: " + document);
         }
@@ -25,6 +25,7 @@ public class CustomerService {
         }
         var customer = new Customer(name, email, document);
         customerRepository.save(customer);
+        return customer;
     }
 
     public void deleteCustomer(Long id)  {
