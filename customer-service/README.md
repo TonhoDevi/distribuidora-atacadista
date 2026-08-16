@@ -114,13 +114,25 @@ http://localhost:8081/v3/api-docs
 | `PUT` | `/customers/{id}` | Atualiza um cliente |
 | `DELETE` | `/customers/{id}` | Remove um cliente |
 
-### Exemplo de corpo (POST/PUT)
+### Exemplo de corpo (POST/PUT) — `CustomerRequestDto`
 
 ```json
 {
   "name": "João Silva",
   "email": "joao@email.com",
   "document": "12345678900"
+}
+```
+
+### Exemplo de resposta — `CustomerResponseDto`
+
+```json
+{
+  "id": 1,
+  "name": "João Silva",
+  "email": "joao@email.com",
+  "document": "12345678900",
+  "createdAt": "2026-08-16T11:30:00"
 }
 ```
 
@@ -139,6 +151,7 @@ Erros seguem um formato padronizado (`StandardError`):
 
 | Situação | Status HTTP |
 |---|---|
+| Campo inválido (vazio, formato incorreto) | `400 Bad Request` |
 | Cliente não encontrado | `404 Not Found` |
 | Cliente já existe (email ou documento duplicado) | `409 Conflict` |
 
@@ -156,6 +169,7 @@ customer-service/
     │   │   ├── services/        → regras de negócio
     │   │   ├── repositories/    → acesso a dados (Spring Data JPA)
     │   │   ├── models/          → entidades JPA
+    │   │   ├── dtos/            → CustomerRequestDto (entrada, com Bean Validation) e CustomerResponseDto (saída)
     │   │   └── exceptions/      → exceções customizadas + handler global
     │   └── resources/
     │       ├── application.yml
@@ -165,7 +179,7 @@ customer-service/
 
 ---
 
-## Status (Fase 1 do plano de aprendizado)
+## Status (Fase 1 do plano de aprendizado) — ✅ CONCLUÍDA
 
 - [x] Projeto gerado (Spring Initializr, Group `br.com.atlastt`, Artifact `customer-service`)
 - [x] Conexão com PostgreSQL via Docker
@@ -176,8 +190,10 @@ customer-service/
 - [x] `CustomerController` (endpoints REST)
 - [x] Swagger UI
 - [x] Tratamento de exceções customizado (`CustomerNotFoundException`, `CustomerAlreadyExistsException`, `StandardError`)
-- [ ] Bean Validation nos campos de entrada (`@NotBlank`, `@Email`)
-- [ ] Separação de DTOs (não expor a entidade JPA diretamente no `@RequestBody`/retorno)
-- [ ] Testes automatizados
+- [x] DTOs separados (`CustomerRequestDto` / `CustomerResponseDto`) — entidade JPA não é mais exposta diretamente na API
+- [x] Bean Validation nos campos de entrada (`@NotBlank`, `@Email`) + handler para `MethodArgumentNotValidException` (400 com mensagens por campo)
+- [ ] Testes automatizados (JUnit/Mockito) — adiado, será revisitado com mais profundidade na Fase 5
+
+Todos os cenários validados manualmente via Swagger: criação válida, campo vazio (400), duplicidade de email/documento (409), busca por ID inexistente (404), remoção de ID inexistente (404).
 
 Próxima fase do projeto: `product-service` + comunicação síncrona via OpenFeign.
