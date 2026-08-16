@@ -27,13 +27,6 @@ public class Customer {
     protected Customer() {
     }
 
-    public Customer(long id, String name, String email, String document) {
-        this.id = id;
-        this.name = name;
-        this.email = email;
-        this.document = document;
-    }
-
     public Customer(String name, String email, String document) {
         this.name = name;
         this.email = email;
