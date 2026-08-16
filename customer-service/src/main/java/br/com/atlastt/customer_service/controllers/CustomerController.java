@@ -1,7 +1,10 @@
 package br.com.atlastt.customer_service.controllers;
 
+import br.com.atlastt.customer_service.dtos.CustomerRequestDto;
+import br.com.atlastt.customer_service.dtos.CustomerResponseDto;
 import br.com.atlastt.customer_service.models.Customer;
 import br.com.atlastt.customer_service.services.CustomerService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,42 +20,38 @@ public class CustomerController {
     }
 
     @PostMapping
-    public Customer createCustomer(@RequestBody Customer customer) {
-        return customerService.createCustomer(
-                customer.getName(), customer.getEmail(), customer.getDocument()
-        );
+    public CustomerResponseDto createCustomer(@Valid @RequestBody CustomerRequestDto customer) {
+        return customerService.createCustomer(customer);
     }
 
     @GetMapping
-    public List<Customer> getAllCustomers() {
+    public List<CustomerResponseDto> getAllCustomers() {
         return customerService.findAllCustomers();
     }
 
     @GetMapping("/{id}")
-    public Customer getCustomerById(@PathVariable Long id) {
+    public CustomerResponseDto getCustomerById(@PathVariable Long id) {
         return customerService.findCustomerById(id);
     }
 
     @GetMapping("/by-email")
-    public Customer getCustomerByEmail(@RequestParam String email) {
+    public CustomerResponseDto getCustomerByEmail(@RequestParam String email) {
         return customerService.findCustomerByEmail(email);
     }
 
     @GetMapping("/by-document")
-    public Customer getCustomerByDocument(@RequestParam String document) {
+    public CustomerResponseDto getCustomerByDocument(@RequestParam String document) {
         return customerService.findCustomerByDocument(document);
     }
 
     @GetMapping("/search")
-    public List<Customer> searchByName(@RequestParam String name) {
+    public List<CustomerResponseDto> searchByName(@RequestParam String name) {
         return customerService.findCustomersByName(name);
     }
 
     @PutMapping("/{id}")
-    public Customer updateCustomer(@PathVariable Long id, @RequestBody Customer customer) {
-        return customerService.updateCustomer(
-                id, customer.getName(), customer.getEmail(), customer.getDocument()
-        );
+    public CustomerResponseDto updateCustomer(@PathVariable Long id, @Valid @RequestBody CustomerRequestDto customer) {
+        return customerService.updateCustomer(id, customer);
     }
 
     @DeleteMapping("/{id}")

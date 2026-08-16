@@ -11,7 +11,9 @@ import java.util.Optional;
 
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
-    public Optional<Customer> findByEmail(String email);
-    public Optional<Customer> findByDocument(String document);
-    public List<Customer> findCustomersByName(String name);
+    Optional<Customer> findByEmail(String email);
+    Optional<Customer> findByDocument(String document);
+    List<Customer> findCustomersByName(String name);
+    boolean existsByEmail(String email);
+    boolean existsByDocument(String document);
 }
