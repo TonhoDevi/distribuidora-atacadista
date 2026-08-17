@@ -2,7 +2,10 @@ package br.com.atlastt.order_service.models;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "orders")
@@ -16,7 +19,7 @@ public class Order{
     private Long customerId;
 
     @Column(nullable = false, precision = 10, scale = 4)
-    private Double total;
+    private BigDecimal total;
 
     @Column(length = 50, nullable = false)
     private String status;
@@ -24,10 +27,13 @@ public class Order{
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    private List<OrderItem> items = new ArrayList<>();
+
     public Order() {
     }
 
-    public Order(Long customerId, Double total, String status) {
+    public Order(Long customerId, BigDecimal total, String status) {
         this.customerId = customerId;
         this.total = total;
         this.status = status;
@@ -45,11 +51,11 @@ public class Order{
         this.customerId = customerId;
     }
 
-    public Double getTotal() {
+    public BigDecimal getTotal() {
         return total;
     }
 
-    public void setTotal(Double total) {
+    public void setTotal(BigDecimal total) {
         this.total = total;
     }
 
@@ -67,5 +73,12 @@ public class Order{
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public List<OrderItem> getItems() {
+        return items;
+    }
+    public void setItems(List<OrderItem> items) {
+        this.items = items;
     }
 }

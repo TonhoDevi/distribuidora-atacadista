@@ -3,11 +3,13 @@ package br.com.atlastt.order_service.models;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
 
 @Entity
 @Table(name = "order_items")
-public class orderItem {
+public class OrderItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,15 +25,19 @@ public class orderItem {
     private Integer quantity;
 
     @Column(name = "unit_price", nullable = false, precision = 10, scale = 4)
-    private Double unitPrice;
+    private BigDecimal unitPrice;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public orderItem() {
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
+
+    public OrderItem() {
     }
 
-    public orderItem(Long orderId, Long productId, Integer quantity, Double unitPrice) {
+    public OrderItem(Long orderId, Long productId, Integer quantity, BigDecimal unitPrice ) {
         this.orderId = orderId;
         this.productId = productId;
         this.quantity = quantity;
@@ -66,10 +72,10 @@ public class orderItem {
         this.quantity = quantity;
     }
 
-    public Double getUnitPrice() {
+    public BigDecimal getUnitPrice() {
         return unitPrice;
     }
-    public void setUnitPrice(Double unitPrice) {
+    public void setUnitPrice(BigDecimal unitPrice) {
         this.unitPrice = unitPrice;
     }
 
@@ -79,5 +85,13 @@ public class orderItem {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
     }
 }
