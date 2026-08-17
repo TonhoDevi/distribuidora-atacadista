@@ -1,5 +1,5 @@
 INSERT INTO customers (name, email, document, created_at) VALUES
-  ('João Silva', 'joao.silva@email.com', '12345678900', now()),
+  ('João Silva', 'joao.silva@email.com', '12345674900', now()),
   ('Maria Oliveira', 'maria.oliveira@email.com', '23456789011', now()),
   ('Pedro Santos', 'pedro.santos@email.com', '34567890122', now()),
   ('Ana Costa', 'ana.costa@email.com', '45678901233', now()),
