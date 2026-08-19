@@ -18,7 +18,7 @@ public class Order{
     @Column(name = "customer_id", nullable = false)
     private Long customerId;
 
-    @Column(nullable = false, precision = 10, scale = 4)
+    @Column(precision = 10, scale = 4)
     private BigDecimal total;
 
     @Column(length = 50, nullable = false)
@@ -33,9 +33,8 @@ public class Order{
     public Order() {
     }
 
-    public Order(Long customerId, BigDecimal total, String status) {
+    public Order(Long customerId, String status) {
         this.customerId = customerId;
-        this.total = total;
         this.status = status;
     }
 
@@ -51,12 +50,11 @@ public class Order{
         this.customerId = customerId;
     }
 
+    public void setTotal(BigDecimal total){
+        this.total = total;
+    }
     public BigDecimal getTotal() {
         return total;
-    }
-
-    public void setTotal(BigDecimal total) {
-        this.total = total;
     }
 
     public String getStatus() {

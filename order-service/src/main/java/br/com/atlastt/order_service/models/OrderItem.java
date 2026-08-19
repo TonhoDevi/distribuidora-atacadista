@@ -15,9 +15,6 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "order_id", nullable = false)
-    private Long orderId;
-
     @Column(name = "product_id", nullable = false)
     private Long productId;
 
@@ -37,8 +34,7 @@ public class OrderItem {
     public OrderItem() {
     }
 
-    public OrderItem(Long orderId, Long productId, Integer quantity, BigDecimal unitPrice ) {
-        this.orderId = orderId;
+    public OrderItem(Long productId, Integer quantity, BigDecimal unitPrice ) {
         this.productId = productId;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
@@ -47,15 +43,6 @@ public class OrderItem {
     public Long getId() {
         return id;
     }
-
-    public Long getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(Long orderId) {
-        this.orderId = orderId;
-    }
-
     public Long getProductId() {
         return productId;
     }
