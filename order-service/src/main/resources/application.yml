@@ -22,3 +22,9 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+
+customer-service:
+  url: http://localhost:8081
+
+product-service:
+  url: http://localhost:8082
