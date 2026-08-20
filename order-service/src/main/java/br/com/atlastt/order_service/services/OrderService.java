@@ -1,10 +1,15 @@
 package br.com.atlastt.order_service.services;
 
+import br.com.atlastt.order_service.clients.CustomerClient;
+import br.com.atlastt.order_service.clients.ProductClient;
 import br.com.atlastt.order_service.dtos.*;
+import br.com.atlastt.order_service.exceptions.CustomerNotFoundException;
 import br.com.atlastt.order_service.exceptions.OrderNotFoundException;
+import br.com.atlastt.order_service.exceptions.ProductNotFoundException;
 import br.com.atlastt.order_service.models.Order;
 import br.com.atlastt.order_service.models.OrderItem;
 import br.com.atlastt.order_service.repositories.OrderRepository;
+import feign.FeignException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,17 +21,32 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final CustomerClient customerClient;
+    private final ProductClient productClient;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository, CustomerClient customerClient, ProductClient productClient) {
         this.orderRepository = orderRepository;
+        this.customerClient = customerClient;
+        this.productClient = productClient;
     }
 
     @Transactional
     public OrderResponseDto createOrder(OrderRequestDto requestDto) {
-
+        try{
+            customerClient.getCustomerById(requestDto.customerId());
+        } catch(FeignException.NotFound e){
+            throw new CustomerNotFoundException("Customer not found with id: " + requestDto.customerId());
+        }
         Order order = new Order(requestDto.customerId(), "CREATED");
         List<OrderItem> items = requestDto.items().stream().map(itemDto -> {
-            OrderItem item = new OrderItem(itemDto.productId(), itemDto.quantity(), itemDto.unitPrice());
+            ProductDto product;
+            try {
+                product = productClient.getProductById(itemDto.productId());
+            } catch (FeignException.NotFound e) {
+                throw new ProductNotFoundException("Product not found with id: " + itemDto.productId());
+            }
+
+            OrderItem item = new OrderItem(itemDto.productId(), itemDto.quantity(), product.price());
             item.setOrder(order);
             return item;
         }).collect(Collectors.toList());

@@ -9,7 +9,5 @@ public record OrderItemRequestDto(
     Long productId,
     @NotNull(message = "Quantity is mandatory")
     @Positive(message = "Quantity must be positive")
-    Integer quantity,
-    @NotNull(message = "Unit price is mandatory")
-    BigDecimal unitPrice
+    Integer quantity
 ) {}
