@@ -2,7 +2,9 @@ package br.com.atlastt.order_service.services;
 
 import br.com.atlastt.order_service.clients.CustomerClient;
 import br.com.atlastt.order_service.clients.ProductClient;
+import br.com.atlastt.order_service.configs.RabbitMQConfig; // NOVO
 import br.com.atlastt.order_service.dtos.*;
+import br.com.atlastt.order_service.events.PedidoCriadoEvent; // NOVO
 import br.com.atlastt.order_service.exceptions.CustomerNotFoundException;
 import br.com.atlastt.order_service.exceptions.OrderNotFoundException;
 import br.com.atlastt.order_service.exceptions.ProductNotFoundException;
@@ -10,6 +12,7 @@ import br.com.atlastt.order_service.models.Order;
 import br.com.atlastt.order_service.models.OrderItem;
 import br.com.atlastt.order_service.repositories.OrderRepository;
 import feign.FeignException;
+import org.springframework.amqp.rabbit.core.RabbitTemplate; // NOVO
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,20 +26,24 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CustomerClient customerClient;
     private final ProductClient productClient;
+    private final RabbitTemplate rabbitTemplate; // NOVO
 
-    public OrderService(OrderRepository orderRepository, CustomerClient customerClient, ProductClient productClient) {
+    public OrderService(OrderRepository orderRepository, CustomerClient customerClient,
+                        ProductClient productClient, RabbitTemplate rabbitTemplate) { // NOVO parâmetro
         this.orderRepository = orderRepository;
         this.customerClient = customerClient;
         this.productClient = productClient;
+        this.rabbitTemplate = rabbitTemplate; // NOVO
     }
 
     @Transactional
     public OrderResponseDto createOrder(OrderRequestDto requestDto) {
-        try{
+        try {
             customerClient.getCustomerById(requestDto.customerId());
-        } catch(FeignException.NotFound e){
+        } catch (FeignException.NotFound e) {
             throw new CustomerNotFoundException("Customer not found with id: " + requestDto.customerId());
         }
+
         Order order = new Order(requestDto.customerId(), "CREATED");
         List<OrderItem> items = requestDto.items().stream().map(itemDto -> {
             ProductDto product;
@@ -45,14 +52,25 @@ public class OrderService {
             } catch (FeignException.NotFound e) {
                 throw new ProductNotFoundException("Product not found with id: " + itemDto.productId());
             }
-
             OrderItem item = new OrderItem(itemDto.productId(), itemDto.quantity(), product.price());
             item.setOrder(order);
             return item;
         }).collect(Collectors.toList());
+
         order.setItems(items);
         order.setTotal(calculateTotal(items));
         Order savedOrder = orderRepository.save(order);
+
+        // NOVO: publica o evento depois de salvar
+        PedidoCriadoEvent event = new PedidoCriadoEvent(
+                savedOrder.getId(), savedOrder.getCustomerId(), savedOrder.getTotal()
+        );
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE_NAME,
+                RabbitMQConfig.ROUTING_KEY,
+                event
+        );
+
         return toResponseDto(savedOrder);
     }
 
@@ -70,7 +88,7 @@ public class OrderService {
         List<OrderItemResponseDto> itemDtos = order.getItems().stream()
                 .map(item -> new OrderItemResponseDto(item.getProductId(), item.getQuantity(), item.getUnitPrice()))
                 .collect(Collectors.toList());
-        
+
         return new OrderResponseDto(
                 order.getId(),
                 order.getCustomerId(),
