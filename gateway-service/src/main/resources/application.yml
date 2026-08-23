@@ -29,7 +29,15 @@ spring:
               predicates:
                 - Path=/orders/**
 
+            - id: auth-service
+              uri: lb://auth-service
+              predicates:
+                - Path=/auth/**,/users/**
+
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka
+
+jwt:
+  secret: ${JWT_SECRET:uma-chave-bem-longa-e-secreta-trocar-em-producao-0123456789}
