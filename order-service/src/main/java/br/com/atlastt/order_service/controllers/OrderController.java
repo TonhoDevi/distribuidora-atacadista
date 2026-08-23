@@ -4,6 +4,8 @@ import br.com.atlastt.order_service.dtos.OrderRequestDto;
 import br.com.atlastt.order_service.dtos.OrderResponseDto;
 import br.com.atlastt.order_service.services.OrderService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,17 +21,17 @@ public class OrderController {
     }
 
     @PostMapping
-    public OrderResponseDto createOrder(@Valid @RequestBody OrderRequestDto orderRequestDto) {
-        return orderService.createOrder(orderRequestDto);
+    public ResponseEntity<OrderResponseDto> createOrder(@Valid @RequestBody OrderRequestDto orderRequestDto) {
+        return new ResponseEntity<>(orderService.createOrder(orderRequestDto), HttpStatus.CREATED);
     }
 
     @GetMapping
-    public List<OrderResponseDto> getAllOrders() {
-        return orderService.findAllOrders();
+    public ResponseEntity<List<OrderResponseDto>> getAllOrders() {
+        return ResponseEntity.ok(orderService.findAllOrders());
     }
 
     @GetMapping("/{id}")
-    public OrderResponseDto getOrderById(@PathVariable Long id) {
-        return orderService.findOrderById(id);
+    public ResponseEntity<OrderResponseDto> getOrderById(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.findOrderById(id));
     }
 }
