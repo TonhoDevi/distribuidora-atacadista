@@ -23,6 +23,7 @@ SERVICES=(
   "order-service"
   "auth-service"
   "gateway-service"
+  "notification-service"
 )
 
 echo "Subindo bancos Docker (se ainda não estiverem no ar)..."
