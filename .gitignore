@@ -10,9 +10,13 @@
 # Maven build output
 target/
 
+logs/
+.pids/
 # OS
 .DS_Store
 Thumbs.db
 
 # Logs
 *.log
+
+*.env

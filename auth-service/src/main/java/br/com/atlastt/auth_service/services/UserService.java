@@ -28,7 +28,7 @@ public class UserService {
         String hashedPassword = passwordEncoder.encode(dto.password());
         User user = new User(dto.username(), hashedPassword, dto.role());
         User savedUser = userRepository.save(user);
-        return mapToResponse(savedUser);
+        return ToResponseDto(savedUser);
     }
 
     @Transactional
@@ -41,7 +41,7 @@ public class UserService {
         user.setRole(dto.role());
         
         User updatedUser = userRepository.save(user);
-        return mapToResponse(updatedUser);
+        return ToResponseDto(updatedUser);
     }
 
     @Transactional
@@ -54,11 +54,11 @@ public class UserService {
 
     public List<UserResponseDTO> findAll() {
         return userRepository.findAll().stream()
-                .map(this::mapToResponse)
+                .map(this::ToResponseDto)
                 .collect(Collectors.toList());
     }
 
-    private UserResponseDTO mapToResponse(User user) {
+    private UserResponseDTO ToResponseDto(User user) {
         return new UserResponseDTO(
                 user.getId(),
                 user.getUsername(),
