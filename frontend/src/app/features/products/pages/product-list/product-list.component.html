@@ -62,6 +62,9 @@
   </table>
 
   @if (products().length === 0) {
-    <p class="empty-state">Nenhum produto encontrado.</p>
+    <div class="empty-state">
+      <mat-icon>inventory_2</mat-icon>
+      <p>Nenhum produto encontrado.</p>
+    </div>
   }
 }

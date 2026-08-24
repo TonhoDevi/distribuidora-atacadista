@@ -37,7 +37,9 @@ const CARDS: DashboardCard[] = [
         <a [routerLink]="card.path" class="card-link">
           <mat-card>
             <mat-card-content class="card-content">
-              <mat-icon>{{ card.icon }}</mat-icon>
+              <div class="card-icon">
+                <mat-icon>{{ card.icon }}</mat-icon>
+              </div>
               <div>
                 <h3>{{ card.title }}</h3>
                 <p>{{ card.description }}</p>
@@ -60,15 +62,28 @@ const CARDS: DashboardCard[] = [
         text-decoration: none;
         color: inherit;
       }
+      .card-link mat-card {
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+      .card-link:hover mat-card {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+      }
       .card-content {
         display: flex;
         align-items: center;
         gap: 16px;
       }
-      .card-content mat-icon {
-        font-size: 36px;
-        width: 36px;
-        height: 36px;
+      .card-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        border-radius: 50%;
+        background: var(--mat-sys-primary-container);
+        color: var(--mat-sys-on-primary-container);
       }
       .card-content h3 {
         margin: 0;

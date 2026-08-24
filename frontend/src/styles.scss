@@ -38,6 +38,16 @@ body {
 }
 /* You can add global styles to this file, and also import other style files */
 
+// h1 cru do navegador é grande e com peso desproporcional ao resto da UI
+// (Material só normaliza h1-h6 se a gente incluir a typography-hierarchy,
+// o que puxaria mais peso de CSS do que vale a pena aqui). Ajuste simples
+// pra ficar consistente com os títulos das telas.
+h1 {
+  font-size: 1.75rem;
+  font-weight: 500;
+  margin: 0 0 4px;
+}
+
 // Classes utilitárias reaproveitadas pelas telas de CRUD (customers/products/orders/users)
 .page-header {
   display: flex;
@@ -64,9 +74,24 @@ body {
 }
 
 .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   text-align: center;
   color: var(--mat-sys-on-surface-variant);
-  padding: 24px 0;
+  padding: 48px 0;
+
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+  }
 }
 
 .form-card {
@@ -78,4 +103,16 @@ body {
   justify-content: flex-end;
   gap: 8px;
   margin-top: 16px;
+}
+
+// Tabelas (customers/products/orders/users): linha destaca ao passar o mouse
+// em vez de ficar totalmente estática — detalhe pequeno que ajuda a não
+// parecer uma tabela HTML crua.
+table.mat-mdc-table .mat-mdc-row:hover {
+  background-color: var(--mat-sys-surface-container-highest);
+}
+
+table.mat-mdc-table {
+  border-radius: 12px;
+  overflow: hidden;
 }

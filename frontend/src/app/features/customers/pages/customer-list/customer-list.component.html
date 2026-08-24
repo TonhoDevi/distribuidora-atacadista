@@ -62,6 +62,9 @@
   </table>
 
   @if (customers().length === 0) {
-    <p class="empty-state">Nenhum cliente encontrado.</p>
+    <div class="empty-state">
+      <mat-icon>people_outline</mat-icon>
+      <p>Nenhum cliente encontrado.</p>
+    </div>
   }
 }

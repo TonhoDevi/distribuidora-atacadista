@@ -1,5 +1,8 @@
 <mat-toolbar color="primary">
-  <span>Distribuidora Atacadista — AtlasTT</span>
+  <div class="brand-row">
+    <mat-icon>storefront</mat-icon>
+    <span>Distribuidora Atacadista</span>
+  </div>
   <span class="spacer"></span>
   <span class="user-info">{{ authService.getUsername() }} ({{ authService.getRole() }})</span>
   <button mat-button (click)="logout()">

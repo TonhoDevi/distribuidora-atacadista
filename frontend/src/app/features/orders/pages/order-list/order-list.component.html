@@ -53,6 +53,9 @@
   </table>
 
   @if (orders().length === 0) {
-    <p class="empty-state">Nenhum pedido encontrado.</p>
+    <div class="empty-state">
+      <mat-icon>shopping_cart</mat-icon>
+      <p>Nenhum pedido encontrado.</p>
+    </div>
   }
 }

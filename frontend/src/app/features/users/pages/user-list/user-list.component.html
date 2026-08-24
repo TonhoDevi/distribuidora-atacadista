@@ -44,6 +44,9 @@
   </table>
 
   @if (users().length === 0) {
-    <p class="empty-state">Nenhum usuário encontrado.</p>
+    <div class="empty-state">
+      <mat-icon>admin_panel_settings</mat-icon>
+      <p>Nenhum usuário encontrado.</p>
+    </div>
   }
 }

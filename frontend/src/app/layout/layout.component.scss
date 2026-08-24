@@ -1,3 +1,15 @@
+mat-toolbar {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
 .spacer {
   flex: 1 1 auto;
 }
@@ -13,12 +25,20 @@
 
 .app-sidenav {
   width: 240px;
+  border-right: none;
+  padding: 12px 8px;
+}
+
+.app-sidenav a[mat-list-item] {
+  border-radius: 12px;
+  margin-bottom: 4px;
+}
+
+.active-link {
+  background-color: var(--mat-sys-secondary-container) !important;
+  color: var(--mat-sys-on-secondary-container);
 }
 
 .app-content {
   padding: 24px;
-}
-
-.active-link {
-  background-color: var(--mat-sys-secondary-container);
 }
