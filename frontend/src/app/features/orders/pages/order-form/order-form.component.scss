@@ -1,0 +1,36 @@
+.order-form-card {
+  max-width: 720px;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.item-product {
+  flex: 2;
+}
+
+.item-quantity {
+  flex: 1;
+  max-width: 100px;
+}
+
+.item-subtotal {
+  min-width: 100px;
+  text-align: right;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.estimated-total {
+  margin-top: 16px;
+  text-align: right;
+}
+
+.estimated-total .hint {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: var(--mat-sys-on-surface-variant);
+}

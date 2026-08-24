@@ -1,0 +1,19 @@
+.summary-card {
+  margin-bottom: 24px;
+}
+
+.summary-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.label {
+  font-size: 0.8rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.total {
+  font-size: 1.2rem;
+  font-weight: 500;
+}

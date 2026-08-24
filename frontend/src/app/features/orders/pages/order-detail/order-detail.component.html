@@ -1,0 +1,60 @@
+<div class="page-header">
+  <h1>Pedido #{{ order()?.id }}</h1>
+  <button mat-button routerLink="/orders">
+    <mat-icon>arrow_back</mat-icon>
+    Voltar
+  </button>
+</div>
+
+@if (loading()) {
+  <div class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+} @else if (order(); as order) {
+  <mat-card class="summary-card">
+    <mat-card-content class="summary-content">
+      <div>
+        <span class="label">Cliente</span>
+        <p>{{ customer()?.name ?? ('Cliente #' + order.customerId) }}</p>
+      </div>
+      <div>
+        <span class="label">Status</span>
+        <p><mat-chip>{{ order.status }}</mat-chip></p>
+      </div>
+      <div>
+        <span class="label">Criado em</span>
+        <p>{{ order.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+      </div>
+      <div>
+        <span class="label">Total</span>
+        <p class="total">{{ order.total | currency: 'BRL' }}</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <h3>Itens</h3>
+  <table mat-table [dataSource]="order.items" class="mat-elevation-z1 full-width">
+    <ng-container matColumnDef="product">
+      <th mat-header-cell *matHeaderCellDef>Produto</th>
+      <td mat-cell *matCellDef="let item">{{ productName(item.productId) }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="quantity">
+      <th mat-header-cell *matHeaderCellDef>Qtd.</th>
+      <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="unitPrice">
+      <th mat-header-cell *matHeaderCellDef>Preço unitário</th>
+      <td mat-cell *matCellDef="let item">{{ item.unitPrice | currency: 'BRL' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="subtotal">
+      <th mat-header-cell *matHeaderCellDef>Subtotal</th>
+      <td mat-cell *matCellDef="let item">{{ subtotal(item.quantity, item.unitPrice) | currency: 'BRL' }}</td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+}

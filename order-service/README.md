@@ -221,4 +221,4 @@ order-service/
 - [x] Actuator + Prometheus + Grafana: métricas expostas e visualizadas
 - [x] Testes unitários (JUnit 6 + Mockito), incluindo mocks assíncronos
 
-Próxima fase do projeto: Fase 6 — frontend Angular.
+Fase 6 (frontend Angular, ver `frontend/README.md`) concluída. Próximo foco do projeto: backend (mensageria/resiliência/observabilidade adicionais) — sem novas fases de UI planejadas por ora.

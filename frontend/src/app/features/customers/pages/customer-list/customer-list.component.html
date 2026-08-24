@@ -1,0 +1,67 @@
+<div class="page-header">
+  <h1>Clientes</h1>
+  <button mat-flat-button color="primary" routerLink="new">
+    <mat-icon>add</mat-icon>
+    Novo Cliente
+  </button>
+</div>
+
+<mat-form-field appearance="outline" class="search-field">
+  <mat-label>Buscar por nome</mat-label>
+  <input
+    matInput
+    [(ngModel)]="searchTerm"
+    (keyup.enter)="search()"
+    placeholder="Digite o nome e pressione Enter"
+  />
+  <button matSuffix mat-icon-button (click)="search()">
+    <mat-icon>search</mat-icon>
+  </button>
+</mat-form-field>
+
+@if (loading()) {
+  <div class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+} @else {
+  <table mat-table [dataSource]="customers()" class="mat-elevation-z1 full-width">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Nome</th>
+      <td mat-cell *matCellDef="let customer">{{ customer.name }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="email">
+      <th mat-header-cell *matHeaderCellDef>Email</th>
+      <td mat-cell *matCellDef="let customer">{{ customer.email }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="document">
+      <th mat-header-cell *matHeaderCellDef>Documento</th>
+      <td mat-cell *matCellDef="let customer">{{ customer.document }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="createdAt">
+      <th mat-header-cell *matHeaderCellDef>Criado em</th>
+      <td mat-cell *matCellDef="let customer">{{ customer.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let customer">
+        <button mat-icon-button [routerLink]="[customer.id, 'edit']" title="Editar">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button (click)="remove(customer)" title="Excluir">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+
+  @if (customers().length === 0) {
+    <p class="empty-state">Nenhum cliente encontrado.</p>
+  }
+}

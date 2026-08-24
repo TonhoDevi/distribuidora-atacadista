@@ -37,3 +37,45 @@ body {
   height: 100%;
 }
 /* You can add global styles to this file, and also import other style files */
+
+// Classes utilitárias reaproveitadas pelas telas de CRUD (customers/products/orders/users)
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.search-field {
+  width: 100%;
+  max-width: 400px;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+  padding: 24px 0;
+}
+
+.form-card {
+  max-width: 560px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}

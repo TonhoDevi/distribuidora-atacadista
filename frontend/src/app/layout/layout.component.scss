@@ -1,0 +1,24 @@
+.spacer {
+  flex: 1 1 auto;
+}
+
+.user-info {
+  margin-right: 16px;
+  font-size: 0.9rem;
+}
+
+.app-container {
+  height: calc(100vh - 64px);
+}
+
+.app-sidenav {
+  width: 240px;
+}
+
+.app-content {
+  padding: 24px;
+}
+
+.active-link {
+  background-color: var(--mat-sys-secondary-container);
+}

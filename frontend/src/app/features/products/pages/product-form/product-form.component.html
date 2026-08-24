@@ -1,0 +1,67 @@
+<h1>{{ isEditMode ? 'Editar Produto' : 'Novo Produto' }}</h1>
+
+@if (loading()) {
+  <div class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+} @else {
+  <mat-card class="form-card">
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nome</mat-label>
+          <input matInput formControlName="name" />
+          @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+            <mat-error>Nome é obrigatório</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>SKU</mat-label>
+          <input matInput formControlName="sku" />
+          @if (form.get('sku')?.hasError('required') && form.get('sku')?.touched) {
+            <mat-error>SKU é obrigatório</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Descrição</mat-label>
+          <textarea matInput formControlName="description" rows="3"></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Preço</mat-label>
+          <input matInput type="number" step="0.01" min="0" formControlName="price" />
+          @if (form.get('price')?.hasError('required') && form.get('price')?.touched) {
+            <mat-error>Preço é obrigatório</mat-error>
+          }
+          @if (form.get('price')?.hasError('min') && form.get('price')?.touched) {
+            <mat-error>Preço deve ser maior ou igual a zero</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Estoque</mat-label>
+          <input matInput type="number" min="0" formControlName="stockQuantity" />
+          @if (form.get('stockQuantity')?.hasError('required') && form.get('stockQuantity')?.touched) {
+            <mat-error>Estoque é obrigatório</mat-error>
+          }
+          @if (form.get('stockQuantity')?.hasError('min') && form.get('stockQuantity')?.touched) {
+            <mat-error>Estoque deve ser maior ou igual a zero</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="form-actions">
+          <button mat-button type="button" (click)="cancel()">Cancelar</button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+            @if (saving()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              Salvar
+            }
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+}
