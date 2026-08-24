@@ -2,7 +2,7 @@
 
 Microsserviço de criação e consulta de pedidos — parte do sistema **Distribuidora Atacadista** (AtlasTT).
 
-Responsável por: criação de pedidos com múltiplos itens, validando cliente e produtos via chamadas síncronas (OpenFeign) ao `customer-service` e `product-service`. Ainda não inclui máquina de estados de pedido, segurança, ou comunicação assíncrona — isso vem em fases futuras do projeto.
+Responsável por: criação de pedidos com múltiplos itens, validando cliente e produtos via chamadas síncronas resilientes (OpenFeign + Resilience4j) ao `customer-service` e `product-service`, publicando eventos assíncronos (RabbitMQ) para o `notification-service`, e expondo métricas de observabilidade (Actuator/Prometheus).
 
 ---
 
@@ -26,7 +26,8 @@ Responsável por: criação de pedidos com múltiplos itens, validando cliente e
 - JDK 17+
 - Maven
 - Docker
-- `customer-service` e `product-service` rodando (portas 8081 e 8082) — o `order-service` depende deles em tempo de execução
+- `eureka-server` rodando (porta 8761) — `order-service` se registra e descobre `customer-service`/`product-service` dinamicamente
+- RabbitMQ rodando (porta 5672) — necessário para publicar eventos de pedido criado
 
 ---
 
@@ -53,7 +54,7 @@ mvn spring-boot:run
 
 A aplicação sobe em `http://localhost:8083`.
 
-**Importante**: `customer-service` (8081) e `product-service` (8082) precisam estar rodando antes de criar um pedido — o `order-service` valida cliente e produtos via OpenFeign em tempo real, chamando as URLs configuradas em `application.yml` (`customer-service.url`, `product-service.url`).
+**Importante**: `customer-service` e `product-service` precisam estar registrados no Eureka antes de criar um pedido — o `order-service` descobre seus endereços dinamicamente (via `lb://`), não usa mais URL fixa (resolvido na Fase 3).
 
 ---
 
@@ -123,13 +124,59 @@ Repara: **não se envia `total` nem `unitPrice`** — ambos são calculados/obti
 
 ---
 
-## Decisões de design
+## Mensageria (RabbitMQ)
+
+Ao criar um pedido com sucesso, o `order-service` publica um evento `PedidoCriadoEvent` (JSON) na fila `pedido.criado.queue`, consumida pelo `notification-service`.
+
+```
+order-service (producer) → pedidos.exchange → pedido.criado.queue → notification-service (consumer)
+```
+
+- Infraestrutura (exchange, fila, binding) declarada via `RabbitMQConfig` (`@Configuration`).
+- Serialização via `JacksonJsonMessageConverter` (JSON), não o padrão `SimpleMessageConverter` (que exigiria `Serializable` nos objetos).
+- **Comportamento lazy**: a fila só é de fato declarada no broker na primeira mensagem publicada, não na subida da aplicação (comportamento documentado do Spring AMQP, via `ConnectionListener`).
+- Painel de administração: `http://localhost:15672` (guest/guest).
+
+---
+
+## Resiliência (Resilience4j)
+
+As chamadas Feign para `customer-service` e `product-service` são protegidas por Circuit Breaker + TimeLimiter, evitando falha em cascata caso um desses serviços fique indisponível ou lento.
+
+- **`ResilientExternalServiceClient`**: classe dedicada (separada do `OrderService`) que envolve as chamadas Feign com `@CircuitBreaker` e `@TimeLimiter`. Precisa ser uma classe própria devido ao mecanismo de proxy do Spring — anotações de resiliência não funcionam em chamadas internas à própria classe (*self-invocation*).
+- **`@TimeLimiter`** exige retorno `CompletableFuture` — a chamada Feign roda em thread separada (`CompletableFuture.supplyAsync`), e é abortada se ultrapassar `timeout-duration` (3s).
+- **`@CircuitBreaker`**: após 50% de falha numa janela das últimas 5 chamadas, o circuito abre por 10s, recusando novas tentativas imediatamente (sem tentar a rede) até testar novamente (estado half-open).
+- **Fallback**: se a chamada falha (erro, timeout ou circuito aberto), um método de fallback lança `CustomerNotFoundException`/`ProductNotFoundException` — o restante da aplicação trata isso de forma idêntica a um erro de validação normal.
+
+Configuração em `application.yml`, seção `resilience4j`.
+
+---
+
+## Observabilidade (Actuator + Prometheus + Grafana)
+
+- **Actuator** expõe métricas em `/actuator/health`, `/actuator/prometheus`, `/actuator/circuitbreakers`, `/actuator/metrics`.
+- **Tag `application`** adicionada a todas as métricas (`management.metrics.tags.application`), permitindo filtrar por serviço no Grafana.
+- **Prometheus** (`http://localhost:9090`) coleta essas métricas a cada 15s, configurado via `prometheus.yml` na raiz do monorepo.
+- **Grafana** (`http://localhost:3000`, admin/admin) visualiza os dados — dashboard `4701` (JVM/Micrometer) usado como referência, importável via ID direto na galeria do Grafana.
+- Estado do Circuit Breaker consultável em tempo real: `http://localhost:8083/actuator/circuitbreakers`.
+
+---
+
+## Testes
+
+- **Unitários** (`OrderServiceTest`): JUnit 6 + Mockito, incluindo mock de `ResilientExternalServiceClient` (retornando `CompletableFuture`), `OrderRepository` e `RabbitTemplate`. Cobre criação bem-sucedida, cliente não encontrado e produto não encontrado.
+
+```bash
+mvn test
+```
+
+---
 
 - **`total` é calculado pelo servidor, não recebido do cliente.** O `OrderService` soma `quantity × unitPrice` de cada item. Isso evita que o cliente da API declare um total arbitrário, divergente da soma real.
 - **`unitPrice` vem do `product-service`, não do cliente.** Ao validar cada item via `ProductClient.getProductById()`, o preço retornado por essa chamada é o que se grava no `OrderItem` — o `OrderItemRequestDto` só recebe `productId` e `quantity`. Isso garante que o preço praticado é sempre o cadastrado no catálogo no momento da compra, não um valor que o cliente poderia forjar.
 - **Sem Foreign Key no banco para `customer_id` e `product_id`.** Como `customers` e `products` vivem em bancos de dados separados (`customer_db`, `product_db`), não é possível (nem correto) criar uma FK cruzando bancos. A integridade referencial é garantida pela aplicação, via chamadas Feign a `CustomerClient`/`ProductClient` antes de persistir o pedido — não pelo banco.
 - **`order_id` em `order_items` é uma FK de verdade** (`REFERENCES orders(id)`), já que ambas as tabelas vivem no mesmo banco (`order_db`). O relacionamento é mapeado no JPA via `@OneToMany`/`@ManyToOne`.
-- **URLs de `customer-service`/`product-service` fixas em `application.yml`** (`http://localhost:8081`, `http://localhost:8082`), sem Eureka/service discovery ainda — dor intencional que motiva a Fase 3 do plano de aprendizado.
+- **URLs de `customer-service`/`product-service` descobertas dinamicamente via Eureka** (`lb://customer-service`, `lb://product-service` nos `@FeignClient`) — a dor de URLs fixas (Fase 2) foi resolvida na Fase 3 com service discovery.
 - **Exceções do Feign (`FeignException.NotFound`) são capturadas e traduzidas** para `CustomerNotFoundException`/`ProductNotFoundException` próprias do domínio, mantendo o formato de erro (`StandardError`) consistente com o resto da API, independente da causa ser um dado local ou uma falha de validação remota.
 
 ---
@@ -143,10 +190,12 @@ order-service/
     ├── main/
     │   ├── java/br/com/atlastt/order_service/
     │   │   ├── controllers/     → endpoints REST
-    │   │   ├── services/        → regras de negócio + orquestração via Feign
+    │   │   ├── services/        → regras de negócio + orquestração via Feign + ResilientExternalServiceClient
     │   │   ├── repositories/    → acesso a dados (Spring Data JPA)
     │   │   ├── models/          → entidades JPA (Order, OrderItem com relacionamento)
-    │   │   ├── clients/         → CustomerClient, ProductClient (Feign)
+    │   │   ├── clients/         → CustomerClient, ProductClient (Feign, via Eureka)
+    │   │   ├── configs/         → RabbitMQConfig (exchange/queue/binding)
+    │   │   ├── events/          → PedidoCriadoEvent
     │   │   ├── dtos/            → DTOs locais + DTOs "espelho" (CustomerDto, ProductDto)
     │   │   └── exceptions/      → exceções customizadas + handler global
     │   └── resources/
@@ -157,20 +206,19 @@ order-service/
 
 ---
 
-## Status (Fase 2 do plano de aprendizado) — ✅ CONCLUÍDA
+## Status — ✅ Fases 2, 3 (parcial) e 5 concluídas neste serviço
 
-- [x] Projeto gerado (Group `br.com.atlastt`, Artifact `order-service`)
-- [x] Conexão com PostgreSQL via Docker (porta 5434)
-- [x] Migrations Flyway (`orders`, `order_items`, com FK entre elas)
-- [x] Entidades `Order`/`OrderItem` com relacionamento `@OneToMany`/`@ManyToOne`
-- [x] `OrderRepository`, `OrderService`, `OrderController`
-- [x] DTOs separados + Bean Validation (incluindo validação em cascata dos itens)
-- [x] Tratamento de exceções customizado
-- [x] Swagger UI
-- [x] **OpenFeign**: `CustomerClient` e `ProductClient` consultando os outros dois serviços
-- [x] Validação de existência de cliente e produtos antes de criar pedido
-- [x] Total calculado no servidor a partir dos itens
-- [x] Preço unitário obtido do `product-service`, não do cliente
-- [x] Testado de ponta a ponta com os três serviços rodando simultaneamente
+**Fase 2** (CRUD + Feign):
+- [x] Projeto gerado, conexão PostgreSQL, migrations Flyway, entidades com relacionamento
+- [x] OpenFeign consultando `customer-service`/`product-service`, total calculado no servidor, preço obtido do catálogo
 
-Próxima fase do projeto: Eureka (service discovery) + Spring Cloud Gateway, eliminando as URLs fixas de `customer-service`/`product-service`.
+**Fase 3** (Service Discovery):
+- [x] Registrado no Eureka, Feign Clients descobrindo os outros serviços dinamicamente (`lb://`)
+
+**Fase 5** (mensageria, resiliência, observabilidade, testes):
+- [x] RabbitMQ: publica `PedidoCriadoEvent`, consumido pelo `notification-service`
+- [x] Resilience4j: Circuit Breaker + TimeLimiter nas chamadas Feign, com fallback
+- [x] Actuator + Prometheus + Grafana: métricas expostas e visualizadas
+- [x] Testes unitários (JUnit 6 + Mockito), incluindo mocks assíncronos
+
+Próxima fase do projeto: Fase 6 — frontend Angular.
