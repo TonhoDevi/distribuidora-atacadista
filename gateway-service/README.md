@@ -40,6 +40,12 @@ A aplicação sobe em `http://localhost:8080` — ponto único de entrada do sis
 | `/products/**` | `product-service` |
 | `/orders/**` | `order-service` |
 
+---
+
+## CORS
+
+`globalcors` liberado só para `http://localhost:4200` (o `frontend` em `ng serve`) — o navegador bloqueia chamadas cross-origin por padrão, e é o Gateway (ponto único de entrada) que precisa responder o preflight, não cada microsserviço.
+
 ### Exemplo
 
 ```

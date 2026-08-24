@@ -10,6 +10,11 @@
 echo "Parando todos os processos do projeto..."
 pkill -f distribuidora-atacadista
 
+# Reforço para o frontend: o processo do "ng serve" nem sempre carrega o
+# caminho completo do repo no argv (depende de como o npm resolve o binário),
+# então o pkill -f acima pode não pegar. Casamos por padrão de comando também.
+pkill -f "ng serve" 2>/dev/null || true
+
 sleep 2
 echo ""
 echo "Processos restantes (deveria estar vazio):"

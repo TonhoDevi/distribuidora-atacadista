@@ -62,14 +62,28 @@ for service in "${SERVICES[@]}"; do
   fi
 done
 
+if [ -d "frontend" ]; then
+  if [ ! -d "frontend/node_modules" ]; then
+    echo "Instalando dependências do frontend (primeira vez, pode demorar um pouco)..."
+    (cd frontend && npm install)
+  fi
+  echo "Subindo frontend..."
+  (cd frontend && nohup npm start > "../logs/frontend.log" 2>&1 &)
+  echo $! > ".pids/frontend.pid"
+else
+  echo "AVISO: pasta frontend não encontrada, pulando."
+fi
+
 echo ""
 echo "Todos os serviços foram disparados em background."
-echo "Logs em: ./logs/<nome-do-servico>.log"
+echo "Logs em: ./logs/<nome-do-servico>.log (frontend em ./logs/frontend.log)"
 echo "Acompanhar em tempo real, ex: tail -f logs/order-service.log"
 echo ""
-echo "Aguarde ~30-40s para todos subirem e se registrarem no Eureka."
+echo "Aguarde ~30-40s para os serviços Java subirem e se registrarem no Eureka,"
+echo "e ~10-20s para o frontend compilar e ficar disponível."
 echo ""
 echo "Painéis disponíveis:"
+echo "  Frontend:    http://localhost:4200"
 echo "  Eureka:      http://localhost:8761"
 echo "  RabbitMQ:    http://localhost:15672  (guest/guest)"
 echo "  Prometheus:  http://localhost:9090"
