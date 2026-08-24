@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -40,12 +40,14 @@ const NAV_ITEMS: NavItem[] = [
   styleUrl: './layout.component.scss',
 })
 export class LayoutComponent {
-  navItems = NAV_ITEMS.filter((item) => !item.roles || this.authService.hasRole(...item.roles));
+  // `authService` precisa ser inicializado (via inject()) ANTES de `navItems`,
+  // porque field initializers rodam em ordem de declaração — se `authService`
+  // viesse só de parâmetro de constructor, `navItems` tentaria usar `this.authService`
+  // ainda undefined (mesmo bug de "used before initialization" que os forms tinham).
+  authService = inject(AuthService);
+  private router = inject(Router);
 
-  constructor(
-    public authService: AuthService,
-    private router: Router
-  ) {}
+  navItems = NAV_ITEMS.filter((item) => !item.roles || this.authService.hasRole(...item.roles));
 
   logout(): void {
     this.authService.logout();

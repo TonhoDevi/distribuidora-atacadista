@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -81,7 +81,9 @@ const CARDS: DashboardCard[] = [
   ],
 })
 export class HomeComponent {
-  cards = CARDS.filter((card) => !card.roles || this.authService.hasRole(...card.roles));
+  // Mesmo motivo do LayoutComponent: `authService` precisa existir antes de
+  // `cards` rodar seu filter (field initializers executam em ordem de declaração).
+  authService = inject(AuthService);
 
-  constructor(public authService: AuthService) {}
+  cards = CARDS.filter((card) => !card.roles || this.authService.hasRole(...card.roles));
 }
