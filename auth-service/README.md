@@ -55,10 +55,12 @@ A aplicação sobe em `http://localhost:8084`.
 
 ### Exemplo de login
 
+O usuário criado pelo `AdminSeeder` na primeira subida é `TonhoDevi` (hardcoded, ver seção "Decisões de design"), não um genérico `admin` — ajuste o exemplo abaixo conforme necessário.
+
 ```json
 POST /auth/login
 {
-  "username": "admin",
+  "username": "TonhoDevi",
   "password": "..."
 }
 ```
@@ -67,7 +69,7 @@ Resposta:
 ```json
 {
   "token": "eyJhbGciOiJIUzM4NCJ9...",
-  "username": "admin",
+  "username": "TonhoDevi",
   "role": "ADMIN"
 }
 ```
@@ -91,7 +93,7 @@ Authorization: Bearer <token>
 - **`User` (auth-service) é diferente de `Customer` (customer-service)**. `User` representa quem pode logar no sistema (funcionários, possivelmente clientes com acesso a portal); `Customer` representa o dado de negócio (lojista/revendedor). São bounded contexts diferentes, propositalmente não fundidos numa tabela só.
 - **Senha nunca é armazenada em texto puro** — sempre hash BCrypt via `PasswordEncoder`.
 - **Mensagem de erro de login é genérica** (`"Invalid username or password"`) tanto para usuário inexistente quanto para senha incorreta — proteção contra *user enumeration attack*.
-- **Bootstrap do primeiro admin via `AdminSeeder`** (`CommandLineRunner`), não via migration SQL com credencial fixa. Cria o admin só se não existir nenhum usuário, com senha vinda de variável de ambiente (`ADMIN_DEFAULT_PASSWORD`), nunca hardcoded no código versionado.
+- **Bootstrap do primeiro admin via `AdminSeeder`** (`CommandLineRunner`), não via migration SQL com credencial fixa. Cria o admin só se não existir nenhum usuário, com senha vinda de variável de ambiente (`ADMIN_DEFAULT_PASSWORD`), nunca hardcoded no código versionado. **Cuidado**: por rodar só uma vez (`if (userRepository.count() == 0)`), mudar `ADMIN_DEFAULT_PASSWORD` no `.env` depois que o serviço já subiu alguma vez **não troca a senha do admin já criado** — o `AdminSeeder` nem chega a rodar de novo. Pra aplicar uma senha nova, apague a linha em `users` (`DELETE FROM users;` no `auth_db`) e suba o serviço de novo.
 - **JWT contém `username` (subject) e `role` (claim customizado)**, assinado com HMAC-SHA (chave simétrica). Validade de 1 hora (`jwt.expiration-ms`).
 - **Autenticação/autorização centralizada no Gateway** (ver `gateway-service/README.md`) — o `auth-service` mantém seu próprio filtro JWT como segunda camada de proteção, já que é acessível diretamente na porta 8084, sem passar obrigatoriamente pelo Gateway.
 

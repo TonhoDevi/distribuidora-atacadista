@@ -31,7 +31,7 @@ ng serve
 
 A aplicação sobe em `http://localhost:4200`.
 
-Login inicial: usuário `admin` e a senha definida em `ADMIN_DEFAULT_PASSWORD` no `auth-service` (ver `auth-service/README.md`, `AdminSeeder`).
+Login inicial: usuário `TonhoDevi` (hardcoded no `AdminSeeder`, não é um `admin` genérico) e a senha definida em `ADMIN_DEFAULT_PASSWORD` no `auth-service` — mas só a que estava configurada **na primeira vez que o serviço subiu**, já que o seeder roda uma única vez (ver `auth-service/README.md`, seção "Decisões de design").
 
 ---
 
