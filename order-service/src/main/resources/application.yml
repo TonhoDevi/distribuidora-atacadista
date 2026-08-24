@@ -54,3 +54,12 @@ resilience4j:
 logging:
   level:
     org.springframework.amqp: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus, circuitbreakers, metrics
+  metrics:
+    tags:
+      application: ${spring.application.name}
