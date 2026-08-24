@@ -9,11 +9,9 @@ const ROLE_KEY = 'auth_role';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  // Aponta pro Gateway, não direto pro auth-service — tudo passa por 8080.
   private readonly apiUrl = 'http://localhost:8080/auth';
 
-  // Signal: estado reativo do Angular. Qualquer componente que leia
-  // isAuthenticated() na template é re-renderizado automaticamente
-  // quando o valor muda, sem precisar de Subject/Observable manual.
   isAuthenticated = signal<boolean>(this.hasToken());
 
   constructor(private http: HttpClient) {}
