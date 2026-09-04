@@ -1,0 +1,94 @@
+services:
+  pg-customer:
+    image: postgres:16
+    container_name: pg-customer
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: customer_user
+      POSTGRES_PASSWORD: customer_pass
+      POSTGRES_DB: customer_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-customer-data:/var/lib/postgresql/data
+
+  pg-product:
+    image: postgres:16
+    container_name: pg-product
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: product_user
+      POSTGRES_PASSWORD: product_pass
+      POSTGRES_DB: product_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg-product-data:/var/lib/postgresql/data
+
+  pg-order:
+    image: postgres:16
+    container_name: pg-order
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: order_user
+      POSTGRES_PASSWORD: order_pass
+      POSTGRES_DB: order_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - pg-order-data:/var/lib/postgresql/data
+
+  pg-auth:
+    image: postgres:16
+    container_name: pg-auth
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_pass
+      POSTGRES_DB: auth_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - pg-auth-data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  pg-customer-data:
+    external: true
+    name: e7c0002783544e5f5c487f5ae4276e45465b57e8e14abca62b925749225825f5
+  pg-product-data:
+    external: true
+    name: 07a75d49d40a2241ae27b41e6c87b70fa0ea21f575973ef92e6eaf40b68a4ed6
+  pg-order-data:
+    external: true
+    name: 34f31d8565d73a46a2ac7138f92189d70b87101ff8a8f17713a17d6d4ca3e9ab
+  pg-auth-data:
+    external: true
+    name: 56aa7f272b0bf6fbec5ba2e57660f386d223bfe6cfe2ff8d3765a02141001859

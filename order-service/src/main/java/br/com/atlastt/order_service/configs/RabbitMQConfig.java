@@ -30,7 +30,7 @@ public class RabbitMQConfig {
                 .with(ROUTING_KEY);
     }
 
-    // NOVO: diz ao RabbitTemplate para serializar objetos como JSON, não Java nativo
+   // diz ao RabbitTemplate para serializar objetos como JSON, não Java nativo
     @Bean
     public MessageConverter jsonMessageConverter() {
         return new JacksonJsonMessageConverter();

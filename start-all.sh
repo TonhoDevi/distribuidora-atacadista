@@ -1,9 +1,7 @@
 #!/bin/bash
 # start-all.sh — sobe todos os microsserviços em background, cada um com seu log próprio.
 # Rodar a partir da raiz do monorepo: ./start-all.sh
-
 set -e
-
 # Carrega variáveis de ambiente do .env (se existir), sem sobrescrever
 # variáveis já exportadas manualmente no shell.
 if [ -f .env ]; then
@@ -12,10 +10,8 @@ if [ -f .env ]; then
   source .env
   set +a
 fi
-
 mkdir -p logs
 mkdir -p .pids
-
 SERVICES=(
   "eureka-server"
   "customer-service"
@@ -25,32 +21,8 @@ SERVICES=(
   "gateway-service"
   "notification-service"
 )
-
-echo "Subindo bancos Docker (se ainda não estiverem no ar)..."
-docker start pg-customer pg-product pg-order pg-auth 2>/dev/null || true
-
-echo "Subindo RabbitMQ (se ainda não estiver no ar)..."
-docker start rabbitmq 2>/dev/null || \
-  docker run --name rabbitmq \
-    -p 5672:5672 \
-    -p 15672:15672 \
-    -d rabbitmq:3-management
-
-echo "Subindo Prometheus (se ainda não estiver no ar)..."
-docker start prometheus 2>/dev/null || \
-  docker run --name prometheus \
-    -p 9090:9090 \
-    --add-host=host.docker.internal:host-gateway \
-    -v "$(pwd)/prometheus.yml:/etc/prometheus/prometheus.yml" \
-    -d prom/prometheus
-
-echo "Subindo Grafana (se ainda não estiver no ar)..."
-docker start grafana 2>/dev/null || \
-  docker run --name grafana \
-    -p 3000:3000 \
-    --add-host=host.docker.internal:host-gateway \
-    -d grafana/grafana
-
+echo "Subindo infraestrutura Docker (bancos, RabbitMQ, Prometheus, Grafana)..."
+docker compose up -d
 for service in "${SERVICES[@]}"; do
   if [ -d "$service" ]; then
     echo "Subindo $service..."
@@ -61,7 +33,6 @@ for service in "${SERVICES[@]}"; do
     echo "AVISO: pasta $service não encontrada, pulando."
   fi
 done
-
 if [ -d "frontend" ]; then
   if [ ! -d "frontend/node_modules" ]; then
     echo "Instalando dependências do frontend (primeira vez, pode demorar um pouco)..."
@@ -73,7 +44,6 @@ if [ -d "frontend" ]; then
 else
   echo "AVISO: pasta frontend não encontrada, pulando."
 fi
-
 echo ""
 echo "Todos os serviços foram disparados em background."
 echo "Logs em: ./logs/<nome-do-servico>.log (frontend em ./logs/frontend.log)"
@@ -83,8 +53,16 @@ echo "Aguarde ~30-40s para os serviços Java subirem e se registrarem no Eureka,
 echo "e ~10-20s para o frontend compilar e ficar disponível."
 echo ""
 echo "Painéis disponíveis:"
-echo "  Frontend:    http://localhost:4200"
+echo "  Frontend:    http://localhost:4200/login"
 echo "  Eureka:      http://localhost:8761"
 echo "  RabbitMQ:    http://localhost:15672  (guest/guest)"
 echo "  Prometheus:  http://localhost:9090"
 echo "  Grafana:     http://localhost:3000   (admin/admin)"
+echo ""
+echo "Swagger UI de cada serviço:"
+echo "  Gateway:              http://localhost:8080/swagger-ui.html"
+echo "  Customer Service:     http://localhost:8081/swagger-ui.html"
+echo "  Product Service:      http://localhost:8082/swagger-ui.html"
+echo "  Order Service:        http://localhost:8083/swagger-ui.html"
+echo "  Auth Service:         http://localhost:8084/swagger-ui.html"
+echo "  Notification Service: http://localhost:8085/swagger-ui.html"

@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final ResilientExternalServiceClient resilientClient; // NOVO — troca os clients diretos
+    private final ResilientExternalServiceClient resilientClient;
     private final RabbitTemplate rabbitTemplate;
 
     public OrderService(OrderRepository orderRepository,
