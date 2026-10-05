@@ -1,6 +1,7 @@
+import { MatIconModule } from '@angular/material/icon';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -16,6 +17,8 @@ import { NotificationService } from '../../../../shared/services/notification.se
   selector: 'app-user-form',
   standalone: true,
   imports: [
+    RouterLink,
+    MatIconModule,
     ReactiveFormsModule,
     MatCardModule,
     MatFormFieldModule,

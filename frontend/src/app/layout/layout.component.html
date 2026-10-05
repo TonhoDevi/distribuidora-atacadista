@@ -1,34 +1,56 @@
-<mat-toolbar color="primary">
-  <div class="brand-row">
-    <mat-icon>storefront</mat-icon>
-    <span>Distribuidora Atacadista</span>
-  </div>
-  <span class="spacer"></span>
-  <span class="user-info">{{ authService.getUsername() }} ({{ authService.getRole() }})</span>
-  <button mat-button (click)="logout()">
-    <mat-icon>logout</mat-icon>
-    Sair
-  </button>
-</mat-toolbar>
+<mat-sidenav-container class="shell">
+  <mat-sidenav
+    #drawer
+    class="rail"
+    [mode]="sidenavMode()"
+    [opened]="!isNarrow()"
+    [fixedInViewport]="true"
+  >
+    <a class="brand" routerLink="/" (click)="isNarrow() && drawer.close()" aria-label="AtlasTT, ir para o painel">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-text">
+        <span class="brand-name">AtlasTT</span>
+        <span class="brand-sub">Distribuidora</span>
+      </span>
+    </a>
 
-<mat-sidenav-container class="app-container">
-  <mat-sidenav mode="side" opened class="app-sidenav">
-    <mat-nav-list>
+    <nav class="rail-nav" aria-label="Principal">
       @for (item of navItems; track item.path) {
         <a
-          mat-list-item
+          class="rail-link"
           [routerLink]="item.path"
-          routerLinkActive="active-link"
+          routerLinkActive="is-active"
           [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+          (click)="isNarrow() && drawer.close()"
         >
-          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-          <span matListItemTitle>{{ item.label }}</span>
+          <mat-icon aria-hidden="true">{{ item.icon }}</mat-icon>
+          <span>{{ item.label }}</span>
         </a>
       }
-    </mat-nav-list>
+    </nav>
+
+    <div class="rail-user">
+      <div class="user-text">
+        <span class="user-name">{{ authService.getUsername() }}</span>
+        <span class="user-role">{{ roleLabel() }}</span>
+      </div>
+      <button type="button" class="logout" (click)="logout()" title="Sair" aria-label="Sair da conta">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
   </mat-sidenav>
 
-  <mat-sidenav-content class="app-content">
-    <router-outlet></router-outlet>
+  <mat-sidenav-content class="content">
+    @if (isNarrow()) {
+      <header class="topbar">
+        <button type="button" class="menu-btn" (click)="drawer.toggle()" aria-label="Abrir menu">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <span class="topbar-title">AtlasTT</span>
+      </header>
+    }
+    <main class="page-wrap">
+      <router-outlet></router-outlet>
+    </main>
   </mat-sidenav-content>
 </mat-sidenav-container>

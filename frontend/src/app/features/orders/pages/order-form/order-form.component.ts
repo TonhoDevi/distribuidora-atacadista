@@ -8,7 +8,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -28,6 +28,7 @@ import { NotificationService } from '../../../../shared/services/notification.se
   selector: 'app-order-form',
   standalone: true,
   imports: [
+    RouterLink,
     CommonModule,
     ReactiveFormsModule,
     MatCardModule,

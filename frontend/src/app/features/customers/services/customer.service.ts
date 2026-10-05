@@ -6,7 +6,7 @@ import { Customer, CustomerRequest } from '../models/customer.model';
 @Injectable({ providedIn: 'root' })
 export class CustomerService {
   // Aponta pro Gateway (lb://customer-service via /customers/**), não direto pro serviço.
-  private readonly apiUrl = 'http://localhost:8080/customers';
+  private readonly apiUrl = 'http://localhost:48080/customers';
 
   constructor(private http: HttpClient) {}
 

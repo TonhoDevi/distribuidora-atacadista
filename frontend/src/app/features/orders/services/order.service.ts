@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Order, OrderRequest } from '../models/order.model';
+import { Order, OrderRequest, OrderStatus } from '../models/order.model';
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
   // Aponta pro Gateway (lb://order-service via /orders/**), não direto pro serviço.
-  // Backend só expõe POST/GET — não há PUT/DELETE de pedido (ver OrderController).
-  private readonly apiUrl = 'http://localhost:8080/orders';
+  // Backend expõe POST/GET e PATCH /{id}/status — não há PUT/DELETE de pedido (ver OrderController).
+  private readonly apiUrl = 'http://localhost:48080/orders';
 
   constructor(private http: HttpClient) {}
 
@@ -21,5 +21,9 @@ export class OrderService {
 
   create(dto: OrderRequest): Observable<Order> {
     return this.http.post<Order>(this.apiUrl, dto);
+  }
+
+  updateStatus(id: number, status: OrderStatus): Observable<Order> {
+    return this.http.patch<Order>(`${this.apiUrl}/${id}/status`, { status });
   }
 }

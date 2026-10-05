@@ -1,4 +1,13 @@
-<h1>Novo Pedido</h1>
+<div class="page-header">
+  <div>
+    <h1>Novo pedido</h1>
+    <p>Escolha o cliente e adicione os produtos. O estoque é baixado ao criar o pedido.</p>
+  </div>
+  <a mat-button routerLink="/orders">
+    <mat-icon>arrow_back</mat-icon>
+    Pedidos
+  </a>
+</div>
 
 @if (loading()) {
   <div class="loading-container">
@@ -20,7 +29,7 @@
           }
         </mat-form-field>
 
-        <h3>Itens</h3>
+        <h3 class="items-title">Itens do pedido</h3>
 
         <div formArrayName="items">
           @for (itemGroup of items.controls; track itemGroup; let i = $index) {
@@ -49,6 +58,7 @@
                 (click)="removeItem(i)"
                 [disabled]="items.length === 1"
                 title="Remover item"
+                aria-label="Remover item"
               >
                 <mat-icon>delete</mat-icon>
               </button>
@@ -62,10 +72,9 @@
         </button>
 
         <div class="estimated-total">
-          <strong>Total estimado: {{ estimatedTotal | currency: 'BRL' }}</strong>
-          <p class="hint">
-            O total final é recalculado pelo servidor a partir do preço vigente de cada produto.
-          </p>
+          <span class="total-label">Total estimado</span>
+          <strong class="total-value">{{ estimatedTotal | currency: 'BRL' }}</strong>
+          <p class="hint">O servidor recalcula o total com o preço atual de cada produto.</p>
         </div>
 
         <div class="form-actions">
@@ -74,7 +83,7 @@
             @if (saving()) {
               <mat-spinner diameter="20"></mat-spinner>
             } @else {
-              Criar Pedido
+              Criar pedido
             }
           </button>
         </div>

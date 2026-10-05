@@ -1,57 +1,64 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
-import { LoginRequest, LoginResponse, Role } from '../models/auth.model';
-
-const TOKEN_KEY = 'auth_token';
-const USERNAME_KEY = 'auth_username';
-const ROLE_KEY = 'auth_role';
+import { Observable, catchError, of, tap } from 'rxjs';
+import { LoginRequest, Role, SessionUser } from '../models/auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  // Aponta pro Gateway, não direto pro auth-service — tudo passa por 8080.
-  private readonly apiUrl = 'http://localhost:8080/auth';
+  // Aponta pro Gateway, não direto pro auth-service — tudo passa por 48080.
+  private readonly apiUrl = 'http://localhost:48080/auth';
 
-  isAuthenticated = signal<boolean>(this.hasToken());
+  // O token JWT está num cookie HttpOnly, invisível para o JS. O que guardamos aqui é só
+  // "quem está logado" (em memória), obtido do login ou de GET /auth/me.
+  private readonly user = signal<SessionUser | null>(null);
+  readonly isAuthenticated = computed(() => this.user() !== null);
 
   constructor(private http: HttpClient) {}
 
-  login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials).pipe(
-      tap((response) => {
-        localStorage.setItem(TOKEN_KEY, response.token);
-        localStorage.setItem(USERNAME_KEY, response.username);
-        localStorage.setItem(ROLE_KEY, response.role);
-        this.isAuthenticated.set(true);
+  login(credentials: LoginRequest): Observable<SessionUser> {
+    return this.http
+      .post<SessionUser>(`${this.apiUrl}/login`, credentials)
+      .pipe(tap((user) => this.user.set(user)));
+  }
+
+  // Chamado na inicialização do app (ver app.config.ts): se o cookie ainda for válido,
+  // o backend responde com o usuário e a sessão é restaurada após um F5.
+  loadSession(): Observable<SessionUser | null> {
+    return this.http.get<SessionUser>(`${this.apiUrl}/me`).pipe(
+      tap((user) => this.user.set(user)),
+      catchError(() => {
+        this.user.set(null);
+        return of(null);
       })
     );
   }
 
-  logout(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USERNAME_KEY);
-    localStorage.removeItem(ROLE_KEY);
-    this.isAuthenticated.set(false);
+  // Pede ao backend para apagar o cookie (só ele consegue, por ser HttpOnly).
+  logout(): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/logout`, {}).pipe(
+      tap(() => this.clearSession()),
+      catchError(() => {
+        this.clearSession();
+        return of(undefined);
+      })
+    );
   }
 
-  getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+  // Só esquece o usuário localmente (usado quando o servidor já respondeu 401).
+  clearSession(): void {
+    this.user.set(null);
   }
 
   getUsername(): string | null {
-    return localStorage.getItem(USERNAME_KEY);
+    return this.user()?.username ?? null;
   }
 
   getRole(): Role | null {
-    return localStorage.getItem(ROLE_KEY) as Role | null;
+    return this.user()?.role ?? null;
   }
 
   hasRole(...roles: Role[]): boolean {
     const current = this.getRole();
     return current !== null && roles.includes(current);
-  }
-
-  private hasToken(): boolean {
-    return !!localStorage.getItem(TOKEN_KEY);
   }
 }

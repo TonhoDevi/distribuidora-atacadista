@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -11,7 +10,7 @@ import { forkJoin } from 'rxjs';
 import { OrderService } from '../../services/order.service';
 import { CustomerService } from '../../../customers/services/customer.service';
 import { ProductService } from '../../../products/services/product.service';
-import { Order } from '../../models/order.model';
+import { NEXT_STATUSES, Order, OrderStatus, STATUS_LABELS } from '../../models/order.model';
 import { Customer } from '../../../customers/models/customer.model';
 import { Product } from '../../../products/models/product.model';
 import { NotificationService } from '../../../../shared/services/notification.service';
@@ -24,7 +23,6 @@ import { NotificationService } from '../../../../shared/services/notification.se
     RouterLink,
     MatCardModule,
     MatTableModule,
-    MatChipsModule,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
@@ -37,6 +35,8 @@ export class OrderDetailComponent implements OnInit {
   order = signal<Order | null>(null);
   customer = signal<Customer | null>(null);
   products = signal<Product[]>([]);
+  statusLabels = STATUS_LABELS;
+  updating = signal(false);
   displayedColumns = ['product', 'quantity', 'unitPrice', 'subtotal'];
 
   constructor(
@@ -84,5 +84,24 @@ export class OrderDetailComponent implements OnInit {
 
   subtotal(quantity: number, unitPrice: number): number {
     return quantity * unitPrice;
+  }
+
+  nextStatuses(order: Order): OrderStatus[] {
+    return NEXT_STATUSES[order.status] ?? [];
+  }
+
+  changeStatus(order: Order, status: OrderStatus): void {
+    this.updating.set(true);
+    this.orderService.updateStatus(order.id, status).subscribe({
+      next: (updated) => {
+        this.order.set(updated);
+        this.updating.set(false);
+        this.notification.success(`Pedido atualizado para ${STATUS_LABELS[status]}.`);
+      },
+      error: (err) => {
+        this.updating.set(false);
+        this.notification.error(err, 'Não foi possível alterar o status do pedido.');
+      },
+    });
   }
 }

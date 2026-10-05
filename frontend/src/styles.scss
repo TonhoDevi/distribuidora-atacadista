@@ -1,118 +1,351 @@
-// Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
+
+// ---------------------------------------------------------------------------
+// Tokens do tema AtlasTT
+//   Ink     #16202A  menu lateral e texto
+//   Concreto #E9ECEF fundo da aplicação
+//   Papel   #FFFFFF  painéis e tabelas
+//   Doca    #0E6B73  ação principal
+//   Palete  #F2A900  único acento (item ativo do menu, alerta de estoque)
+//   Tijolo  #B3361F  erro e cancelado
+// ---------------------------------------------------------------------------
+:root {
+  --atl-ink: #16202a;
+  --atl-ink-soft: #24313d;
+  --atl-ink-muted: #8fa0ae;
+  --atl-concrete: #e9ecef;
+  --atl-paper: #ffffff;
+  --atl-line: #d5dade;
+  --atl-line-soft: #e8ebee;
+  --atl-text-muted: #55636f;
+  --atl-dock: #0e6b73;
+  --atl-dock-dark: #0a5057;
+  --atl-dock-tint: #dcecee;
+  --atl-pallet: #f2a900;
+  --atl-brick: #b3361f;
+  --atl-brick-tint: #f6e1dc;
+  --atl-green: #2e7d4f;
+  --atl-green-tint: #dcefe3;
+  --atl-radius: 6px;
+  --atl-font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
 
 html {
   height: 100%;
   @include mat.theme(
     (
       color: (
-        primary: mat.$azure-palette,
-        tertiary: mat.$blue-palette,
+        primary: mat.$cyan-palette,
+        tertiary: mat.$orange-palette,
       ),
-      typography: Roboto,
-      density: 0,
+      typography: (
+        plain-family: 'IBM Plex Sans',
+        brand-family: 'IBM Plex Sans',
+        bold-weight: 600,
+        medium-weight: 500,
+        regular-weight: 400,
+      ),
+      density: -1,
     )
   );
+
+  // Ajustes finos sobre o tema gerado: paleta da marca e cantos menos "bolha".
+  --mat-sys-primary: var(--atl-dock);
+  --mat-sys-on-primary: #ffffff;
+  --mat-sys-primary-container: var(--atl-dock-tint);
+  --mat-sys-on-primary-container: #07343a;
+  --mat-sys-secondary-container: var(--atl-dock-tint);
+  --mat-sys-on-secondary-container: #07343a;
+  --mat-sys-error: var(--atl-brick);
+  --mat-sys-surface: var(--atl-paper);
+  --mat-sys-surface-container-highest: #f1f4f5;
+  --mat-sys-outline: #8a979f;
+  --mat-sys-outline-variant: var(--atl-line);
+  --mat-sys-corner-full: var(--atl-radius);
+  --mat-sys-corner-large: 8px;
+  --mat-sys-corner-extra-large: 8px;
+  --mat-sys-corner-medium: var(--atl-radius);
+  --mat-sys-corner-small: 4px;
 }
 
 body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
   color-scheme: light;
-
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
+  background-color: var(--atl-concrete);
+  color: var(--atl-ink);
   font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
+  font-size: 0.9375rem;
   margin: 0;
   height: 100%;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
 }
-/* You can add global styles to this file, and also import other style files */
 
-// h1 cru do navegador é grande e com peso desproporcional ao resto da UI
-// (Material só normaliza h1-h6 se a gente incluir a typography-hierarchy,
-// o que puxaria mais peso de CSS do que vale a pena aqui). Ajuste simples
-// pra ficar consistente com os títulos das telas.
+// Foco visível para quem navega por teclado.
+:focus-visible {
+  outline: 2px solid var(--atl-dock);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Tipografia
+// ---------------------------------------------------------------------------
 h1 {
-  font-size: 1.75rem;
-  font-weight: 500;
-  margin: 0 0 4px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  margin: 0;
 }
 
-// Classes utilitárias reaproveitadas pelas telas de CRUD (customers/products/orders/users)
+h2 {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 24px 0 12px;
+}
+
+.code {
+  font-family: var(--atl-font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+}
+
+.muted {
+  color: var(--atl-text-muted);
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+// ---------------------------------------------------------------------------
+// Estrutura de página (usada por todas as telas)
+// ---------------------------------------------------------------------------
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
 .page-header {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: 16px;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+
+  p {
+    margin: 4px 0 0;
+    color: var(--atl-text-muted);
+  }
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .search-field {
   width: 100%;
-  max-width: 400px;
+  max-width: 380px;
   display: block;
-  margin-bottom: 16px;
+  --mat-form-field-container-height: 44px;
+  --mdc-outlined-text-field-container-color: var(--atl-paper);
+
+  .mat-mdc-text-field-wrapper {
+    background: var(--atl-paper);
+    border-radius: var(--atl-radius);
+  }
 }
 
 .loading-container {
   display: flex;
   justify-content: center;
-  padding: 48px 0;
+  padding: 64px 0;
 }
 
 .full-width {
   width: 100%;
 }
 
+// ---------------------------------------------------------------------------
+// Tabelas: folha de controle
+// ---------------------------------------------------------------------------
+table.mat-mdc-table {
+  background: var(--atl-paper);
+  border: 1px solid var(--atl-line);
+  border-radius: var(--atl-radius);
+  overflow: hidden;
+  --mat-table-background-color: var(--atl-paper);
+  --mat-table-header-container-height: 40px;
+  --mat-table-row-item-container-height: 48px;
+  --mat-table-row-item-outline-color: var(--atl-line-soft);
+  --mat-table-header-headline-color: var(--atl-text-muted);
+  --mat-table-header-headline-size: 0.8125rem;
+  --mat-table-header-headline-weight: 500;
+}
+
+table.mat-mdc-table .mat-mdc-header-row {
+  background: #f4f6f7;
+}
+
+table.mat-mdc-table .mat-mdc-row:hover {
+  background-color: #f4f8f8;
+}
+
+table.mat-mdc-table td.mat-mdc-cell.num,
+table.mat-mdc-table th.mat-mdc-header-cell.num {
+  text-align: right;
+}
+
+table.mat-mdc-table .col-actions {
+  width: 1%;
+  white-space: nowrap;
+  text-align: right;
+}
+
+// ---------------------------------------------------------------------------
+// Tags de status (etiqueta de armazém: bloco de cor + texto, canto quadrado)
+// ---------------------------------------------------------------------------
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 8px 0 0;
+  border: 1px solid var(--atl-line);
+  border-radius: 4px;
+  background: var(--atl-paper);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+    align-self: stretch;
+    width: 6px;
+    background: var(--tag-color, var(--atl-text-muted));
+    border-radius: 3px 0 0 3px;
+  }
+
+  &--created { --tag-color: var(--atl-pallet); }
+  &--confirmed { --tag-color: var(--atl-dock); }
+  &--shipped { --tag-color: #3b6ea8; }
+  &--delivered { --tag-color: var(--atl-green); }
+  &--canceled { --tag-color: var(--atl-brick); }
+  &--role { --tag-color: var(--atl-ink-muted); }
+  &--low { --tag-color: var(--atl-pallet); }
+  &--out { --tag-color: var(--atl-brick); }
+}
+
+// ---------------------------------------------------------------------------
+// Estado vazio: orienta o próximo passo
+// ---------------------------------------------------------------------------
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   text-align: center;
-  color: var(--mat-sys-on-surface-variant);
-  padding: 48px 0;
+  color: var(--atl-text-muted);
+  padding: 56px 16px;
+  background: var(--atl-paper);
+  border: 1px dashed var(--atl-line);
+  border-radius: var(--atl-radius);
 
   mat-icon {
-    font-size: 40px;
-    width: 40px;
-    height: 40px;
-    opacity: 0.5;
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    opacity: 0.55;
   }
 
   p {
     margin: 0;
   }
+
+  strong {
+    color: var(--atl-ink);
+    font-weight: 600;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Formulários e cartões
+// ---------------------------------------------------------------------------
+.mat-mdc-card {
+  --mdc-elevated-card-container-color: var(--atl-paper);
+  --mat-card-elevated-container-color: var(--atl-paper);
+  --mat-card-elevated-container-shape: var(--atl-radius);
+  --mat-card-elevated-container-elevation: none;
+  --mat-card-elevated-container-shadow-color: transparent;
+  border: 1px solid var(--atl-line);
+  box-shadow: none;
 }
 
 .form-card {
-  max-width: 560px;
+  max-width: 600px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+
+@media (max-width: 560px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .form-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 16px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--atl-line-soft);
 }
 
-// Tabelas (customers/products/orders/users): linha destaca ao passar o mouse
-// em vez de ficar totalmente estática — detalhe pequeno que ajuda a não
-// parecer uma tabela HTML crua.
-table.mat-mdc-table .mat-mdc-row:hover {
-  background-color: var(--mat-sys-surface-container-highest);
+// ---------------------------------------------------------------------------
+// Feedback (snackbars) e diálogos
+// ---------------------------------------------------------------------------
+.snackbar-success {
+  --mat-snack-bar-container-color: var(--atl-green);
+  --mat-snack-bar-supporting-text-color: #ffffff;
+  --mat-snack-bar-button-color: #ffffff;
 }
 
-table.mat-mdc-table {
-  border-radius: 12px;
-  overflow: hidden;
+.snackbar-error {
+  --mat-snack-bar-container-color: var(--atl-brick);
+  --mat-snack-bar-supporting-text-color: #ffffff;
+  --mat-snack-bar-button-color: #ffffff;
+}
+
+.mat-mdc-dialog-container {
+  --mat-dialog-container-shape: 8px;
+}
+
+.snackbar-warn {
+  --mat-snack-bar-container-color: var(--atl-ink);
+  --mat-snack-bar-supporting-text-color: #ffffff;
+  --mat-snack-bar-button-color: var(--atl-pallet);
 }

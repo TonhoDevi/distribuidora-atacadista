@@ -5,8 +5,8 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface LoginResponse {
-  token: string;
+// Resposta do login e de GET /auth/me. O token não vem aqui: ele só trafega no cookie HttpOnly.
+export interface SessionUser {
   username: string;
   role: Role;
 }

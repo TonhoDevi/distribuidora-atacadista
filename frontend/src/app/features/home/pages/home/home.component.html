@@ -1,0 +1,108 @@
+<div class="page-header">
+  <div>
+    <h1>Olá, {{ authService.getUsername() }}</h1>
+    <p>{{ today | date: "EEEE, d 'de' MMMM" }}</p>
+  </div>
+  <button mat-flat-button color="primary" routerLink="/orders/new">
+    <mat-icon>add</mat-icon>
+    Novo pedido
+  </button>
+</div>
+
+@if (loading()) {
+  <div class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+} @else if (failed()) {
+  <div class="empty-state">
+    <mat-icon>cloud_off</mat-icon>
+    <p><strong>Não foi possível carregar o painel.</strong></p>
+    <p>Verifique se os serviços estão no ar e recarregue a página.</p>
+  </div>
+} @else {
+  <dl class="ledger">
+    <div class="ledger-item">
+      <dt>Pedidos para tratar</dt>
+      <dd>{{ queue().length }}</dd>
+    </div>
+    <div class="ledger-item">
+      <dt>Valor em aberto</dt>
+      <dd>{{ openValue() | currency: 'BRL' }}</dd>
+    </div>
+    <div class="ledger-item">
+      <dt>Clientes</dt>
+      <dd>{{ customers().length }}</dd>
+    </div>
+    <div class="ledger-item" [class.is-alert]="lowStock().length > 0">
+      <dt>Produtos para repor</dt>
+      <dd>{{ lowStock().length }}</dd>
+    </div>
+  </dl>
+
+  <div class="columns">
+    <section class="panel" aria-labelledby="queue-title">
+      <header class="panel-head">
+        <h2 id="queue-title">Fila de pedidos</h2>
+        <a routerLink="/orders" class="panel-link">Ver todos os pedidos</a>
+      </header>
+
+      @if (queue().length === 0) {
+        <div class="panel-empty">
+          <mat-icon>task_alt</mat-icon>
+          <p><strong>Nenhum pedido esperando ação.</strong></p>
+          <p>Pedidos novos e confirmados aparecem aqui.</p>
+        </div>
+      } @else {
+        <ul class="rows">
+          @for (order of queue().slice(0, 8); track order.id) {
+            <li>
+              <a class="row" [routerLink]="['/orders', order.id]">
+                <span class="code row-id">#{{ order.id }}</span>
+                <span class="row-main">
+                  <span class="row-title">{{ customerName(order.customerId) }}</span>
+                  <span class="row-sub muted">{{ order.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+                </span>
+                <span class="tag tag--{{ order.status.toLowerCase() }}">{{ statusLabels[order.status] }}</span>
+                <span class="row-value">{{ order.total | currency: 'BRL' }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+        @if (queue().length > 8) {
+          <p class="panel-foot muted">Mostrando 8 de {{ queue().length }} pedidos.</p>
+        }
+      }
+    </section>
+
+    <section class="panel" aria-labelledby="stock-title">
+      <header class="panel-head">
+        <h2 id="stock-title">Estoque baixo</h2>
+        <a routerLink="/products" class="panel-link">Ver produtos</a>
+      </header>
+
+      @if (lowStock().length === 0) {
+        <div class="panel-empty">
+          <mat-icon>inventory</mat-icon>
+          <p><strong>Estoque em dia.</strong></p>
+          <p>Nenhum produto abaixo de {{ lowStockThreshold }} unidades.</p>
+        </div>
+      } @else {
+        <ul class="rows">
+          @for (product of lowStock().slice(0, 8); track product.id) {
+            <li>
+              <a class="row" [routerLink]="['/products', product.id, 'edit']">
+                <span class="row-main">
+                  <span class="row-title">{{ product.name }}</span>
+                  <span class="row-sub code muted">{{ product.sku }}</span>
+                </span>
+                <span class="tag" [class.tag--out]="product.stockQuantity === 0" [class.tag--low]="product.stockQuantity > 0">
+                  {{ product.stockQuantity === 0 ? 'Sem estoque' : product.stockQuantity + ' un.' }}
+                </span>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </div>
+}

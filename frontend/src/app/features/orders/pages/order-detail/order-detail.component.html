@@ -1,9 +1,11 @@
 <div class="page-header">
-  <h1>Pedido #{{ order()?.id }}</h1>
-  <button mat-button routerLink="/orders">
+  <div>
+    <h1>Pedido <span class="code order-code">#{{ order()?.id }}</span></h1>
+  </div>
+  <a mat-button routerLink="/orders">
     <mat-icon>arrow_back</mat-icon>
-    Voltar
-  </button>
+    Pedidos
+  </a>
 </div>
 
 @if (loading()) {
@@ -19,7 +21,7 @@
       </div>
       <div>
         <span class="label">Status</span>
-        <p><mat-chip>{{ order.status }}</mat-chip></p>
+        <p><span class="tag tag--{{ order.status.toLowerCase() }}">{{ statusLabels[order.status] ?? order.status }}</span></p>
       </div>
       <div>
         <span class="label">Criado em</span>
@@ -32,26 +34,37 @@
     </mat-card-content>
   </mat-card>
 
-  <h3>Itens</h3>
-  <table mat-table [dataSource]="order.items" class="mat-elevation-z1 full-width">
+  @if (nextStatuses(order).length) {
+    <div class="status-actions" role="group" aria-label="Alterar status do pedido">
+      <span class="muted">Mover para</span>
+      @for (next of nextStatuses(order); track next) {
+        <button mat-stroked-button [class.danger]="next === 'CANCELED'" [disabled]="updating()" (click)="changeStatus(order, next)">
+          {{ statusLabels[next] }}
+        </button>
+      }
+    </div>
+  }
+
+  <h3>Itens do pedido</h3>
+  <table mat-table [dataSource]="order.items" class="full-width">
     <ng-container matColumnDef="product">
       <th mat-header-cell *matHeaderCellDef>Produto</th>
       <td mat-cell *matCellDef="let item">{{ productName(item.productId) }}</td>
     </ng-container>
 
     <ng-container matColumnDef="quantity">
-      <th mat-header-cell *matHeaderCellDef>Qtd.</th>
-      <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+      <th mat-header-cell *matHeaderCellDef class="num">Qtd.</th>
+      <td mat-cell *matCellDef="let item" class="num">{{ item.quantity }}</td>
     </ng-container>
 
     <ng-container matColumnDef="unitPrice">
-      <th mat-header-cell *matHeaderCellDef>Preço unitário</th>
-      <td mat-cell *matCellDef="let item">{{ item.unitPrice | currency: 'BRL' }}</td>
+      <th mat-header-cell *matHeaderCellDef class="num">Preço unitário</th>
+      <td mat-cell *matCellDef="let item" class="num">{{ item.unitPrice | currency: 'BRL' }}</td>
     </ng-container>
 
     <ng-container matColumnDef="subtotal">
-      <th mat-header-cell *matHeaderCellDef>Subtotal</th>
-      <td mat-cell *matCellDef="let item">{{ subtotal(item.quantity, item.unitPrice) | currency: 'BRL' }}</td>
+      <th mat-header-cell *matHeaderCellDef class="num">Subtotal</th>
+      <td mat-cell *matCellDef="let item" class="num">{{ subtotal(item.quantity, item.unitPrice) | currency: 'BRL' }}</td>
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

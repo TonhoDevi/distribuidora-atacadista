@@ -7,7 +7,7 @@ import { User, UserRequest } from '../models/user.model';
 export class UserService {
   // Aponta pro Gateway (lb://auth-service via /users/**). POST/DELETE exigem role ADMIN
   // no JwtGlobalFilter — a rota já é protegida no frontend por roleGuard(['ADMIN']).
-  private readonly apiUrl = 'http://localhost:8080/users';
+  private readonly apiUrl = 'http://localhost:48080/users';
 
   constructor(private http: HttpClient) {}
 

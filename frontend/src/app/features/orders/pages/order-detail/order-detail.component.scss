@@ -1,19 +1,41 @@
+.order-code {
+  font-size: 1.25rem;
+  color: var(--atl-text-muted);
+}
+
 .summary-card {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .summary-content {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
+  gap: 20px;
+}
+
+.summary-content p {
+  margin: 4px 0 0;
 }
 
 .label {
-  font-size: 0.8rem;
-  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.875rem;
+  color: var(--atl-text-muted);
 }
 
 .total {
-  font-size: 1.2rem;
-  font-weight: 500;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.status-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.status-actions .danger {
+  --mat-button-outlined-label-text-color: var(--atl-brick);
+  --mat-button-outlined-outline-color: var(--atl-brick);
 }

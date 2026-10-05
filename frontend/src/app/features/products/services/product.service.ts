@@ -6,7 +6,7 @@ import { Product, ProductRequest } from '../models/product.model';
 @Injectable({ providedIn: 'root' })
 export class ProductService {
   // Aponta pro Gateway (lb://product-service via /products/**), não direto pro serviço.
-  private readonly apiUrl = 'http://localhost:8080/products';
+  private readonly apiUrl = 'http://localhost:48080/products';
 
   constructor(private http: HttpClient) {}
 

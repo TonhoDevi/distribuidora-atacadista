@@ -1,4 +1,13 @@
-<h1>{{ isEditMode ? 'Editar Usuário' : 'Novo Usuário' }}</h1>
+<div class="page-header">
+  <div>
+    <h1>{{ isEditMode ? 'Editar Usuário' : 'Novo Usuário' }}</h1>
+    <p>O papel define o que a pessoa pode fazer no sistema.</p>
+  </div>
+  <a mat-button routerLink="/users">
+    <mat-icon>arrow_back</mat-icon>
+    Usuários
+  </a>
+</div>
 
 @if (loading()) {
   <div class="loading-container">

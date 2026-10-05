@@ -1,44 +1,208 @@
-mat-toolbar {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-  z-index: 10;
+.shell {
+  min-height: 100vh;
+  background: var(--atl-concrete);
 }
 
-.brand-row {
+.rail {
+  width: 232px;
+  display: flex;
+  flex-direction: column;
+  background: var(--atl-ink);
+  color: #e8edf1;
+  border: none;
+  border-radius: 0;
+  --mat-sidenav-container-shape: 0;
+  --mat-sidenav-container-width: 232px;
+  --mat-sidenav-container-background-color: var(--atl-ink);
+  --mat-sidenav-container-text-color: #e8edf1;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 20px 20px;
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--atl-ink-soft);
+}
+
+// Marca: três ripas de palete empilhadas.
+.brand-mark {
+  position: relative;
+  width: 28px;
+  height: 22px;
+  flex: none;
+  background:
+    linear-gradient(var(--atl-pallet), var(--atl-pallet)) 0 0 / 100% 4px no-repeat,
+    linear-gradient(var(--atl-pallet), var(--atl-pallet)) 0 9px / 100% 4px no-repeat,
+    linear-gradient(var(--atl-pallet), var(--atl-pallet)) 0 18px / 100% 4px no-repeat;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.brand-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.brand-sub {
+  font-size: 0.8125rem;
+  color: var(--atl-ink-muted);
+}
+
+.rail-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 12px;
+  flex: 1;
+}
+
+.rail-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 4px;
+  color: #c3cdd5;
+  text-decoration: none;
+  font-weight: 500;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: var(--atl-ink-muted);
+  }
+
+  &:hover {
+    background: var(--atl-ink-soft);
+    color: #ffffff;
+  }
+
+  &.is-active {
+    background: var(--atl-ink-soft);
+    color: #ffffff;
+
+    mat-icon {
+      color: var(--atl-pallet);
+    }
+
+    // Cinta de palete: o único uso do amarelo na navegação.
+    &::before {
+      content: '';
+      position: absolute;
+      left: -12px;
+      top: 8px;
+      bottom: 8px;
+      width: 4px;
+      background: var(--atl-pallet);
+      border-radius: 0 2px 2px 0;
+    }
+  }
+
+  &:focus-visible {
+    outline-color: var(--atl-pallet);
+  }
+}
+
+.rail-user {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--atl-ink-soft);
+}
+
+.user-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.25;
+}
+
+.user-name {
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.spacer {
-  flex: 1 1 auto;
+.user-role {
+  font-size: 0.8125rem;
+  color: var(--atl-ink-muted);
 }
 
-.user-info {
-  margin-right: 16px;
-  font-size: 0.9rem;
+.logout,
+.menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
 }
 
-.app-container {
-  height: calc(100vh - 64px);
+.logout {
+  color: var(--atl-ink-muted);
+
+  &:hover {
+    background: var(--atl-ink-soft);
+    color: #ffffff;
+  }
+
+  &:focus-visible {
+    outline-color: var(--atl-pallet);
+  }
 }
 
-.app-sidenav {
-  width: 240px;
-  border-right: none;
-  padding: 12px 8px;
+.content {
+  background: var(--atl-concrete);
+  min-height: 100vh;
 }
 
-.app-sidenav a[mat-list-item] {
-  border-radius: 12px;
-  margin-bottom: 4px;
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 52px;
+  padding: 0 8px;
+  background: var(--atl-ink);
+  color: #ffffff;
 }
 
-.active-link {
-  background-color: var(--mat-sys-secondary-container) !important;
-  color: var(--mat-sys-on-secondary-container);
+.menu-btn {
+  color: #ffffff;
 }
 
-.app-content {
-  padding: 24px;
+.topbar-title {
+  font-weight: 600;
+}
+
+.page-wrap {
+  max-width: 1192px;
+  margin: 0 auto;
+  padding: 32px 36px 48px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .page-wrap {
+    padding: 20px 16px 40px;
+  }
 }

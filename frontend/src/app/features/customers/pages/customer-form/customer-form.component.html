@@ -1,4 +1,13 @@
-<h1>{{ isEditMode ? 'Editar Cliente' : 'Novo Cliente' }}</h1>
+<div class="page-header">
+  <div>
+    <h1>{{ isEditMode ? 'Editar Cliente' : 'Novo Cliente' }}</h1>
+    <p>Dados de cadastro do lojista ou revendedor.</p>
+  </div>
+  <a mat-button routerLink="/customers">
+    <mat-icon>arrow_back</mat-icon>
+    Clientes
+  </a>
+</div>
 
 @if (loading()) {
   <div class="loading-container">
