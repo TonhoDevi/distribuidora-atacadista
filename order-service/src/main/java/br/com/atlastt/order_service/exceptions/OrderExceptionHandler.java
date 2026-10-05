@@ -61,5 +61,23 @@ public class OrderExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<StandardError> handleInsufficientStock(InsufficientStockException ex, HttpServletRequest request) {
+        return conflict(ex.getMessage(), request);
+    }
 
+    @ExceptionHandler(InvalidStatusTransitionException.class)
+    public ResponseEntity<StandardError> handleInvalidStatusTransition(InvalidStatusTransitionException ex, HttpServletRequest request) {
+        return conflict(ex.getMessage(), request);
+    }
+
+    private ResponseEntity<StandardError> conflict(String message, HttpServletRequest request) {
+        StandardError error = new StandardError(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                message,
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
 }

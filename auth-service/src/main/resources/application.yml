@@ -1,12 +1,12 @@
 server:
-  port: 8084
+  port: 48084
 
 spring:
   application:
     name: auth-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5435/auth_db
+    url: jdbc:postgresql://localhost:54350/auth_db
     username: auth_user
     password: auth_pass
     driver-class-name: org.postgresql.Driver
@@ -26,7 +26,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://localhost:48761/eureka
 
 logging:
   level:
@@ -38,7 +38,22 @@ logging:
 jwt:
   secret: ${JWT_SECRET:uma-chave-bem-longa-e-secreta-trocar-em-producao-0123456789}
   expiration-ms: 3600000
+  # Cookie HttpOnly que carrega o JWT (o gateway-service lê o mesmo nome)
+  cookie:
+    name: auth_token
+    # true em produção (HTTPS). Em dev (http://localhost) fica false.
+    secure: ${JWT_COOKIE_SECURE:false}
+    same-site: Strict
 
 # application.yml do auth-service
 admin:
   default-password: ${ADMIN_DEFAULT_PASSWORD:changeme123}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus, metrics
+  metrics:
+    tags:
+      application: ${spring.application.name}

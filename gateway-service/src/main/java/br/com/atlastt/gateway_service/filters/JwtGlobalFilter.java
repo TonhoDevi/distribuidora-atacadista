@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -23,13 +24,17 @@ import java.util.List;
 public class JwtGlobalFilter implements GlobalFilter, Ordered {
 
     private final SecretKey secretKey;
+    private final String cookieName;
 
     private static final List<String> PUBLIC_PATHS = List.of(
-            "/auth/login",
-            "/swagger-ui", "/v3/api-docs", "/webjars"
+            "/auth/login", "/auth/logout",
+            "/swagger-ui", "/v3/api-docs", "/webjars",
+            "/actuator/health", "/actuator/prometheus"
     );
 
-    public JwtGlobalFilter(@Value("${jwt.secret}") String secret) {
+    public JwtGlobalFilter(@Value("${jwt.secret}") String secret,
+                           @Value("${jwt.cookie-name}") String cookieName) {
+        this.cookieName = cookieName;
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -39,17 +44,15 @@ public class JwtGlobalFilter implements GlobalFilter, Ordered {
         String path = request.getPath().toString();
         HttpMethod method = request.getMethod();
 
-        boolean isPublic = PUBLIC_PATHS.stream().anyMatch(path::contains);
+        boolean isPublic = PUBLIC_PATHS.stream().anyMatch(path::startsWith);
         if (isPublic) {
             return chain.filter(exchange);
         }
 
-        String authHeader = request.getHeaders().getFirst("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        String token = extractToken(request);
+        if (token == null) {
             return reject(exchange, HttpStatus.UNAUTHORIZED);
         }
-
-        String token = authHeader.substring(7);
         Claims claims;
         try {
             claims = Jwts.parser().verifyWith(secretKey).build()
@@ -66,6 +69,19 @@ public class JwtGlobalFilter implements GlobalFilter, Ordered {
         }
 
         return chain.filter(exchange);
+    }
+
+    // Ordem: cookie HttpOnly (navegador) e, como alternativa para curl/Swagger/outros clientes, header Authorization: Bearer.
+    private String extractToken(ServerHttpRequest request) {
+        HttpCookie cookie = request.getCookies().getFirst(cookieName);
+        if (cookie != null && !cookie.getValue().isEmpty()) {
+            return cookie.getValue();
+        }
+        String authHeader = request.getHeaders().getFirst("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return null;
     }
 
     /**

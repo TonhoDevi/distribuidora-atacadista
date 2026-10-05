@@ -1,5 +1,5 @@
 server:
-  port: 8761
+  port: 48761
 
 spring:
   application:
@@ -11,3 +11,12 @@ eureka:
     # de si mesmo. Como ele É o servidor, isso não faz sentido aqui.
     register-with-eureka: false
     fetch-registry: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus, metrics
+  metrics:
+    tags:
+      application: ${spring.application.name}

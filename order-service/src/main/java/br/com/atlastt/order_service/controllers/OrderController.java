@@ -2,6 +2,7 @@ package br.com.atlastt.order_service.controllers;
 
 import br.com.atlastt.order_service.dtos.OrderRequestDto;
 import br.com.atlastt.order_service.dtos.OrderResponseDto;
+import br.com.atlastt.order_service.dtos.OrderStatusUpdateDto;
 import br.com.atlastt.order_service.services.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -33,5 +34,11 @@ public class OrderController {
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponseDto> getOrderById(@PathVariable Long id) {
         return ResponseEntity.ok(orderService.findOrderById(id));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<OrderResponseDto> updateStatus(@PathVariable Long id,
+                                                         @Valid @RequestBody OrderStatusUpdateDto dto) {
+        return ResponseEntity.ok(orderService.updateStatus(id, dto.status()));
     }
 }

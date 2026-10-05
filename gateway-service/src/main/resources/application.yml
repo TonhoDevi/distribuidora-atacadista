@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 48080
 
 spring:
   application:
@@ -16,7 +16,10 @@ spring:
           globalcors:
             cors-configurations:
               '[/**]':
-                allowedOrigins: "http://localhost:4200"
+                allowedOrigins: "http://localhost:44200"
+                # Necessário para o navegador enviar/receber o cookie HttpOnly em chamadas cross-origin
+                # (44200 -> 48080). Com credenciais, a origem tem que ser explícita (nunca "*").
+                allowCredentials: true
                 allowedMethods: "*"
                 allowedHeaders: "*"
           routes:
@@ -43,7 +46,17 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://localhost:48761/eureka
 
 jwt:
+  cookie-name: auth_token
   secret: ${JWT_SECRET:uma-chave-bem-longa-e-secreta-trocar-em-producao-0123456789}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus, metrics
+  metrics:
+    tags:
+      application: ${spring.application.name}

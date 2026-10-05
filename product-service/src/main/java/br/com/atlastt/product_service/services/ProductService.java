@@ -2,6 +2,7 @@ package br.com.atlastt.product_service.services;
 
 import br.com.atlastt.product_service.dtos.ProductRequestDto;
 import br.com.atlastt.product_service.dtos.ProductResponseDto;
+import br.com.atlastt.product_service.exceptions.InsufficientStockException;
 import br.com.atlastt.product_service.exceptions.InvalidProductDataException;
 import br.com.atlastt.product_service.exceptions.ProductAlreadyExistsException;
 import br.com.atlastt.product_service.exceptions.ProductNotFoundException;
@@ -9,6 +10,7 @@ import br.com.atlastt.product_service.models.Product;
 import br.com.atlastt.product_service.repositories.ProductRepository;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -61,10 +63,10 @@ public class ProductService {
             throw new ProductAlreadyExistsException("Product already exists with sku: " + productRequestDto.sku());
         }
         if(productRequestDto.price().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Product price cannot be negative");
+            throw new InvalidProductDataException("Product price cannot be negative");
         }
         if (productRequestDto.stockQuantity() < 0) {
-            throw new IllegalArgumentException("Product stock quantity cannot be negative");
+            throw new InvalidProductDataException("Product stock quantity cannot be negative");
         }
         product.setName(productRequestDto.name());
         product.setSku(productRequestDto.sku());
@@ -94,6 +96,26 @@ public class ProductService {
         var product = productRepository.findBySku(sku)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with sku: " + sku));
         return toResponseDto(product);
+    }
+
+    @Transactional
+    public ProductResponseDto decreaseStock(Long id, int quantity) {
+        if (productRepository.decreaseStock(id, quantity) == 0) {
+            // 0 linhas afetadas: ou o produto não existe, ou não há estoque suficiente
+            if (!productRepository.existsById(id)) {
+                throw new ProductNotFoundException("Product not found with id: " + id);
+            }
+            throw new InsufficientStockException("Insufficient stock for product id: " + id);
+        }
+        return findProductById(id);
+    }
+
+    @Transactional
+    public ProductResponseDto increaseStock(Long id, int quantity) {
+        if (productRepository.increaseStock(id, quantity) == 0) {
+            throw new ProductNotFoundException("Product not found with id: " + id);
+        }
+        return findProductById(id);
     }
 
     private ProductResponseDto toResponseDto(Product product) {

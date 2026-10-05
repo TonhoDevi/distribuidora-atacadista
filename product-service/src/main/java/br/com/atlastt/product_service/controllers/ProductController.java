@@ -2,6 +2,7 @@ package br.com.atlastt.product_service.controllers;
 
 import br.com.atlastt.product_service.dtos.ProductRequestDto;
 import br.com.atlastt.product_service.dtos.ProductResponseDto;
+import br.com.atlastt.product_service.dtos.StockAdjustmentDto;
 import br.com.atlastt.product_service.services.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -48,6 +49,16 @@ public class ProductController {
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponseDto> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequestDto product) {
         return ResponseEntity.ok(productService.updateProduct(id, product));
+    }
+
+    @PostMapping("/{id}/stock/decrease")
+    public ResponseEntity<ProductResponseDto> decreaseStock(@PathVariable Long id, @Valid @RequestBody StockAdjustmentDto dto) {
+        return ResponseEntity.ok(productService.decreaseStock(id, dto.quantity()));
+    }
+
+    @PostMapping("/{id}/stock/increase")
+    public ResponseEntity<ProductResponseDto> increaseStock(@PathVariable Long id, @Valid @RequestBody StockAdjustmentDto dto) {
+        return ResponseEntity.ok(productService.increaseStock(id, dto.quantity()));
     }
 
     @DeleteMapping("/{id}")

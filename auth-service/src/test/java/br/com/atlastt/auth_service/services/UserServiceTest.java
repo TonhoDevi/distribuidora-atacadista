@@ -32,48 +32,58 @@ class UserServiceTest {
     private UserService userService;
 
     @Test
-    void deveriaCriarUsuarioComSucesso() {
+    void deveriaCriarUsuarioComSenhaCriptografada() {
+        // Arrange
         var dto = new UserRequestDTO("admin", "senha123", UserRole.ADMIN);
-        when(passwordEncoder.encode(dto.password())).thenReturn("hashed_password");
-        when(userRepository.save(any(User.class))).thenReturn(
-                new User("admin", "hashed_password", UserRole.ADMIN)
-        );
+        when(passwordEncoder.encode("senha123")).thenReturn("hashed_password");
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
+        // Act
         var resultado = userService.createUser(dto);
 
+        // Assert
         assertEquals("admin", resultado.username());
         verify(passwordEncoder).encode("senha123");
+        verify(userRepository).save(argThat(u -> u.getPassword().equals("hashed_password")));
     }
 
     @Test
     void deveriaDeletarUsuarioComSucesso() {
+        // Arrange
         when(userRepository.existsById(1L)).thenReturn(true);
-        doNothing().when(userRepository).deleteById(1L);
 
+        // Act
         userService.deleteUser(1L);
 
+        // Assert
         verify(userRepository, times(1)).deleteById(1L);
     }
 
     @Test
     void deveriaLancarExcecaoAoDeletarUsuarioInexistente() {
+        // Arrange
         when(userRepository.existsById(1L)).thenReturn(false);
 
+        // Act & Assert
         assertThrows(UserNotFoundException.class, () -> userService.deleteUser(1L));
+        verify(userRepository, never()).deleteById(any());
     }
 
     @Test
     void deveriaAtualizarUsuarioComSucesso() {
-        User existingUser = new User("admin", "old_pass", UserRole.ADMIN);
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        // Arrange
+        User existente = new User("admin", "old_pass", UserRole.ADMIN);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existente));
         when(passwordEncoder.encode("new_pass")).thenReturn("new_hashed_pass");
-        when(userRepository.save(any(User.class))).thenReturn(existingUser);
-
+        when(userRepository.save(any(User.class))).thenReturn(existente);
         var dto = new UserRequestDTO("admin_updated", "new_pass", UserRole.GERENTE);
+
+        // Act
         var resultado = userService.updateUser(1L, dto);
 
+        // Assert
         assertEquals("admin_updated", resultado.username());
         assertEquals(UserRole.GERENTE, resultado.role());
-        verify(userRepository).save(any(User.class));
+        assertEquals("new_hashed_pass", existente.getPassword());
     }
 }
