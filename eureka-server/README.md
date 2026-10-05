@@ -20,14 +20,14 @@ Responsável por: manter o registro de todos os microsserviços em execução (q
 mvn spring-boot:run
 ```
 
-A aplicação sobe em `http://localhost:8761` — porta convencional do Eureka no ecossistema Spring Cloud.
+A aplicação sobe em `http://localhost:48761` — porta convencional do Eureka no ecossistema Spring Cloud.
 
 ---
 
 ## Painel visual
 
 ```
-http://localhost:8761
+http://localhost:48761
 ```
 
 Mostra todas as instâncias registradas, status (UP/DOWN), e informações gerais do servidor.

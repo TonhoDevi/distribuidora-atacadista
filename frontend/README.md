@@ -2,7 +2,7 @@
 
 SPA em Angular — parte do sistema **Distribuidora Atacadista** (AtlasTT).
 
-Responsável por: interface web para login e CRUD de clientes, produtos e pedidos, além de gestão de usuários (ADMIN). Consome exclusivamente o `gateway-service` (porta 8080) — nunca fala direto com os microsserviços de backend.
+Responsável por: interface web para login e CRUD de clientes, produtos e pedidos, além de gestão de usuários (ADMIN). Consome exclusivamente o `gateway-service` (porta 48080) — nunca fala direto com os microsserviços de backend.
 
 ---
 
@@ -18,7 +18,7 @@ Responsável por: interface web para login e CRUD de clientes, produtos e pedido
 ## Pré-requisitos
 
 - Node.js `^22.22.3` ou `^24.15.0` ou `>=26.0.0` (exigido pelo Angular CLI 22 — Node 22.22.2 ou anteriores **não funcionam**)
-- `gateway-service` rodando em `http://localhost:8080`, com `eureka-server`, `auth-service`, `customer-service`, `product-service` e `order-service` registrados (ver READMEs de cada serviço)
+- `gateway-service` rodando em `http://localhost:48080`, com `eureka-server`, `auth-service`, `customer-service`, `product-service` e `order-service` registrados (ver READMEs de cada serviço)
 
 ---
 
@@ -26,10 +26,10 @@ Responsável por: interface web para login e CRUD de clientes, produtos e pedido
 
 ```bash
 npm install
-ng serve
+npm start   # ng serve --port 44200
 ```
 
-A aplicação sobe em `http://localhost:4200`.
+A aplicação sobe em `http://localhost:44200`.
 
 Login inicial: usuário `TonhoDevi` (hardcoded no `AdminSeeder`, não é um `admin` genérico) e a senha definida em `ADMIN_DEFAULT_PASSWORD` no `auth-service` — mas só a que estava configurada **na primeira vez que o serviço subiu**, já que o seeder roda uma única vez (ver `auth-service/README.md`, seção "Decisões de design").
 
@@ -75,7 +75,7 @@ Cada feature segue o mesmo padrão: `*.model.ts` (contratos alinhados aos DTOs J
 
 ## Decisões de design
 
-- **Tudo aponta pro Gateway (`http://localhost:8080`), nunca direto pro microsserviço** — mesmo princípio de ponto único de entrada documentado em `gateway-service/README.md`.
+- **Tudo aponta pro Gateway (`http://localhost:48080`), nunca direto pro microsserviço** — mesmo princípio de ponto único de entrada documentado em `gateway-service/README.md`.
 - **Autorização é só UX aqui.** `roleGuard` e a filtragem de itens de menu/dashboard por role só escondem telas — a autorização de verdade é aplicada no Gateway (`JwtGlobalFilter`), como já documentado nos guards existentes. Uma role indevida tentando `DELETE`/`POST /users` direto na API recebe 403 do Gateway independente do que o frontend mostra.
 - **`auth-service`/`UserController` não expõe `GET /users/{id}`.** A tela de edição de usuário busca a lista inteira (`GET /users`) e filtra pelo id no cliente — não é uma limitação do frontend, é o contrato do backend.
 - **Total do pedido é só uma prévia no formulário de criação.** O cálculo exibido em `/orders/new` (preço do produto × quantidade) é client-side, para UX; o valor gravado de fato vem sempre do `order-service`, que busca o preço vigente no `product-service` no momento da criação (ver `order-service/README.md`).

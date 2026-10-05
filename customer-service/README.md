@@ -30,46 +30,13 @@ Responsável por: CRUD de clientes (nome, email, documento). Ainda não inclui l
 
 ## Subindo o banco de dados (Docker)
 
-O serviço espera um PostgreSQL rodando em `localhost:5432`, banco `customer_db`.
-
-### Primeira vez (criar o container)
+O serviço espera um PostgreSQL em `localhost:54320`, banco `customer_db`. Ele sobe pelo `docker-compose.yml` da raiz do monorepo:
 
 ```bash
-docker run --name pg-customer \
-  -e POSTGRES_USER=customer_user \
-  -e POSTGRES_PASSWORD=customer_pass \
-  -e POSTGRES_DB=customer_db \
-  -p 5432:5432 \
-  -d postgres:16
+docker compose up -d pg-customer
 ```
 
-### Deixar o container reiniciando automaticamente com o Docker
-
-Assim você não precisa dar `docker start` manualmente toda sessão — o container sobe sozinho sempre que o Docker sobe (ex: no boot da máquina), a menos que você o pare manualmente.
-
-```bash
-docker update --restart unless-stopped pg-customer
-```
-
-### Nas próximas vezes (container já existe, só parado)
-
-```bash
-docker start pg-customer
-```
-
-### Verificar se está rodando
-
-```bash
-docker ps
-```
-
-Deve aparecer `pg-customer` com status `Up`.
-
-> **Atenção**: se a porta 5432 já estiver em uso por um PostgreSQL nativo instalado na máquina, desative-o antes:
-> ```bash
-> sudo systemctl stop postgresql
-> sudo systemctl disable postgresql
-> ```
+> Se a porta 54320 já estiver em uso por um PostgreSQL nativo, pare-o antes (`sudo systemctl stop postgresql`).
 
 ---
 
@@ -79,7 +46,7 @@ Deve aparecer `pg-customer` com status `Up`.
 mvn spring-boot:run
 ```
 
-A aplicação sobe em `http://localhost:8081`.
+A aplicação sobe em `http://localhost:48081`.
 
 Na primeira subida, o Flyway cria automaticamente a tabela `customers` a partir das migrations em `src/main/resources/db/migration`.
 
@@ -90,13 +57,13 @@ Na primeira subida, o Flyway cria automaticamente a tabela `customers` a partir 
 Com a aplicação rodando, acesse:
 
 ```
-http://localhost:8081/swagger-ui.html
+http://localhost:48081/swagger-ui.html
 ```
 
 Especificação OpenAPI em formato JSON puro:
 
 ```
-http://localhost:8081/v3/api-docs
+http://localhost:48081/v3/api-docs
 ```
 
 ---

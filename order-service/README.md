@@ -26,22 +26,15 @@ Responsável por: criação de pedidos com múltiplos itens, validando cliente e
 - JDK 17+
 - Maven
 - Docker
-- `eureka-server` rodando (porta 8761) — `order-service` se registra e descobre `customer-service`/`product-service` dinamicamente
-- RabbitMQ rodando (porta 5672) — necessário para publicar eventos de pedido criado
+- `eureka-server` rodando (porta 48761) — `order-service` se registra e descobre `customer-service`/`product-service` dinamicamente
+- RabbitMQ rodando (porta 56720) — necessário para publicar eventos de pedido criado
 
 ---
 
 ## Subindo o banco de dados (Docker)
 
 ```bash
-docker run --name pg-order \
-  -e POSTGRES_USER=order_user \
-  -e POSTGRES_PASSWORD=order_pass \
-  -e POSTGRES_DB=order_db \
-  -p 5434:5432 \
-  -d postgres:16
-
-docker update --restart unless-stopped pg-order
+docker compose up -d pg-order rabbitmq   # a partir da raiz do monorepo (porta 54340, banco order_db)
 ```
 
 ---
@@ -52,7 +45,7 @@ docker update --restart unless-stopped pg-order
 mvn spring-boot:run
 ```
 
-A aplicação sobe em `http://localhost:8083`.
+A aplicação sobe em `http://localhost:48083`.
 
 **Importante**: `customer-service` e `product-service` precisam estar registrados no Eureka antes de criar um pedido — o `order-service` descobre seus endereços dinamicamente (via `lb://`), não usa mais URL fixa (resolvido na Fase 3).
 
@@ -61,7 +54,7 @@ A aplicação sobe em `http://localhost:8083`.
 ## Documentação interativa (Swagger UI)
 
 ```
-http://localhost:8083/swagger-ui.html
+http://localhost:48083/swagger-ui.html
 ```
 
 ---
@@ -73,6 +66,7 @@ http://localhost:8083/swagger-ui.html
 | `POST` | `/orders` | Cria um pedido com um ou mais itens |
 | `GET` | `/orders` | Lista todos os pedidos |
 | `GET` | `/orders/{id}` | Busca pedido por ID |
+| `PATCH` | `/orders/{id}/status` | Altera o status (`{"status": "CONFIRMED"}`) |
 
 ### Exemplo de corpo (POST) — `OrderRequestDto`
 
@@ -121,6 +115,18 @@ Repara: **não se envia `total` nem `unitPrice`** — ambos são calculados/obti
 | Pedido não encontrado | `404 Not Found` |
 | Cliente referenciado não existe (validado via `customer-service`) | `404 Not Found` |
 | Produto referenciado não existe (validado via `product-service`) | `404 Not Found` |
+| Estoque insuficiente | `409 Conflict` |
+| Transição de status inválida | `409 Conflict` |
+
+---
+
+## Estoque e status do pedido
+
+**Estoque**: ao criar um pedido, o `order-service` confere o estoque e chama `POST /products/{id}/stock/decrease` no `product-service` para cada item (baixa atômica no banco de lá). Se um item falhar ou o pedido não puder ser salvo, o que já foi baixado é devolvido (`.../stock/increase`, compensação). Ao **cancelar** um pedido, o estoque dos itens volta.
+
+**Status** (`OrderStatus`): `CREATED → CONFIRMED → SHIPPED → DELIVERED`, e `CANCELED` a partir de `CREATED` ou `CONFIRMED`. `DELIVERED` e `CANCELED` são finais. Qualquer outra transição retorna 409.
+
+Limitação: não há transação distribuída. Se a devolução de estoque também falhar, o erro é só logado (sem retry), o que pode deixar o estoque defasado.
 
 ---
 
@@ -135,7 +141,7 @@ order-service (producer) → pedidos.exchange → pedido.criado.queue → notifi
 - Infraestrutura (exchange, fila, binding) declarada via `RabbitMQConfig` (`@Configuration`).
 - Serialização via `JacksonJsonMessageConverter` (JSON), não o padrão `SimpleMessageConverter` (que exigiria `Serializable` nos objetos).
 - **Comportamento lazy**: a fila só é de fato declarada no broker na primeira mensagem publicada, não na subida da aplicação (comportamento documentado do Spring AMQP, via `ConnectionListener`).
-- Painel de administração: `http://localhost:15672` (guest/guest).
+- Painel de administração: `http://localhost:56721` (guest/guest).
 
 ---
 
@@ -156,9 +162,9 @@ Configuração em `application.yml`, seção `resilience4j`.
 
 - **Actuator** expõe métricas em `/actuator/health`, `/actuator/prometheus`, `/actuator/circuitbreakers`, `/actuator/metrics`.
 - **Tag `application`** adicionada a todas as métricas (`management.metrics.tags.application`), permitindo filtrar por serviço no Grafana.
-- **Prometheus** (`http://localhost:9090`) coleta essas métricas a cada 15s, configurado via `prometheus.yml` na raiz do monorepo.
-- **Grafana** (`http://localhost:3000`, admin/admin) visualiza os dados — dashboard `4701` (JVM/Micrometer) usado como referência, importável via ID direto na galeria do Grafana.
-- Estado do Circuit Breaker consultável em tempo real: `http://localhost:8083/actuator/circuitbreakers`.
+- **Prometheus** (`http://localhost:59090`) coleta essas métricas a cada 15s, configurado via `prometheus.yml` na raiz do monorepo.
+- **Grafana** (`http://localhost:53000`, admin/admin) visualiza os dados — dashboard `4701` (JVM/Micrometer) usado como referência, importável via ID direto na galeria do Grafana.
+- Estado do Circuit Breaker consultável em tempo real: `http://localhost:48083/actuator/circuitbreakers`.
 
 ---
 

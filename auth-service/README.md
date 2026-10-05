@@ -21,23 +21,16 @@ Responsável por: cadastro de usuários do sistema (não confundir com `Customer
 ## Rodando a aplicação
 
 ```bash
-docker run --name pg-auth \
-  -e POSTGRES_USER=auth_user \
-  -e POSTGRES_PASSWORD=auth_pass \
-  -e POSTGRES_DB=auth_db \
-  -p 5435:5432 \
-  -d postgres:16
-
-docker update --restart unless-stopped pg-auth
+docker compose up -d pg-auth   # a partir da raiz do monorepo (porta 54350, banco auth_db)
 ```
 
 ```bash
 mvn spring-boot:run
 ```
 
-A aplicação sobe em `http://localhost:8084`.
+A aplicação sobe em `http://localhost:48084`.
 
-**Variáveis de ambiente** (ver `.env.example` na raiz do monorepo):
+**Variáveis de ambiente** (modelo em `.env.example` na raiz do monorepo):
 - `JWT_SECRET`: chave usada para assinar/validar tokens — precisa ser **idêntica** à configurada no `gateway-service`
 - `ADMIN_DEFAULT_PASSWORD`: senha do usuário admin criado automaticamente na primeira subida (ver `AdminSeeder`)
 
@@ -47,7 +40,9 @@ A aplicação sobe em `http://localhost:8084`.
 
 | Verbo | Caminho | Autenticação | Descrição |
 |---|---|---|---|
-| `POST` | `/auth/login` | Pública | Autentica e devolve um JWT |
+| `POST` | `/auth/login` | Pública | Autentica e devolve o JWT num cookie `HttpOnly`; o body traz só `username` e `role` |
+| `POST` | `/auth/logout` | Pública | Apaga o cookie |
+| `GET` | `/auth/me` | Requer token | Retorna o usuário logado |
 | `POST` | `/users` | Requer token (ADMIN) | Cria um novo usuário do sistema |
 | `GET` | `/users` | Requer token | Lista usuários |
 | `PUT` | `/users/{id}` | Requer token | Atualiza um usuário |
@@ -65,10 +60,9 @@ POST /auth/login
 }
 ```
 
-Resposta:
+Resposta (o token vem no header `Set-Cookie: auth_token=...; HttpOnly; SameSite=Strict`, não no body):
 ```json
 {
-  "token": "eyJhbGciOiJIUzM4NCJ9...",
   "username": "TonhoDevi",
   "role": "ADMIN"
 }
@@ -76,11 +70,17 @@ Resposta:
 
 ### Usando o token
 
+O navegador envia o cookie `auth_token` sozinho. Clientes que não são navegador (curl, Swagger) podem usar o header:
+
 ```
 Authorization: Bearer <token>
 ```
 
+Explicação completa em [docs/JWT.md](../docs/JWT.md).
+
 ---
+
+> `/users` exige token também quando acessado direto na porta 48084. Antes estava em `permitAll` no `SecurityConfig`, o que permitia criar usuários sem autenticação passando por fora do Gateway.
 
 ## Roles
 
@@ -95,7 +95,7 @@ Authorization: Bearer <token>
 - **Mensagem de erro de login é genérica** (`"Invalid username or password"`) tanto para usuário inexistente quanto para senha incorreta — proteção contra *user enumeration attack*.
 - **Bootstrap do primeiro admin via `AdminSeeder`** (`CommandLineRunner`), não via migration SQL com credencial fixa. Cria o admin só se não existir nenhum usuário, com senha vinda de variável de ambiente (`ADMIN_DEFAULT_PASSWORD`), nunca hardcoded no código versionado. **Cuidado**: por rodar só uma vez (`if (userRepository.count() == 0)`), mudar `ADMIN_DEFAULT_PASSWORD` no `.env` depois que o serviço já subiu alguma vez **não troca a senha do admin já criado** — o `AdminSeeder` nem chega a rodar de novo. Pra aplicar uma senha nova, apague a linha em `users` (`DELETE FROM users;` no `auth_db`) e suba o serviço de novo.
 - **JWT contém `username` (subject) e `role` (claim customizado)**, assinado com HMAC-SHA (chave simétrica). Validade de 1 hora (`jwt.expiration-ms`).
-- **Autenticação/autorização centralizada no Gateway** (ver `gateway-service/README.md`) — o `auth-service` mantém seu próprio filtro JWT como segunda camada de proteção, já que é acessível diretamente na porta 8084, sem passar obrigatoriamente pelo Gateway.
+- **Autenticação/autorização centralizada no Gateway** (ver `gateway-service/README.md`) — o `auth-service` mantém seu próprio filtro JWT como segunda camada de proteção, já que é acessível diretamente na porta 48084, sem passar obrigatoriamente pelo Gateway.
 
 ---
 
